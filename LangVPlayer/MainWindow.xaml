@@ -14,7 +14,7 @@
         Background="{StaticResource PrimaryBackgroundBrush}"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
-        KeyDown="Window_KeyDown">
+        PreviewKeyDown="Window_PreviewKeyDown">
     
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="5"/>

@@ -108,7 +108,7 @@ public partial class MainWindow : Window
         _libVLC?.Dispose();
     }
 
-    private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         // Hotkeys / Горячие клавиши
         switch (e.Key)
