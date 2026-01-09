@@ -1,0 +1,37 @@
+# LangV Player
+
+## Build artifacts
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio
+.vs/
+*.vsidx
+*.testlog
+
+## NuGet
+packages/
+*.nupkg
+
+## JetBrains Rider
+.idea/
+
+## OS generated files
+.DS_Store
+Thumbs.db
+
+## Application settings (local)
+# Note: settings.json is stored in %AppData%, not in project
+
+## Logs
+*.log
