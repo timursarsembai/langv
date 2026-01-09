@@ -263,8 +263,8 @@ namespace LangVPlayer.Services
         }
 
         /// <summary>
-        /// Generate thumbnail using FFmpeg
-        /// Сгенерировать миниатюру используя FFmpeg
+        /// Generate thumbnail using FFmpeg with fallback strategy.
+        /// Сгенерировать миниатюру используя FFmpeg со стратегией fallback.
         /// </summary>
         private BitmapImage? GenerateThumbnailWithFFmpeg(long timeMs, CancellationToken cancellationToken)
         {
@@ -278,15 +278,75 @@ namespace LangVPlayer.Services
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 
-                // Format time for FFmpeg (HH:MM:SS.mmm)
-                // Форматировать время для FFmpeg
-                var time = TimeSpan.FromMilliseconds(timeMs);
-                string timeStr = $"{(int)time.TotalHours:D2}:{time.Minutes:D2}:{time.Seconds:D2}.{time.Milliseconds:D3}";
+                // Try combined seek first (faster for most codecs)
+                // Сначала попробовать combined seek (быстрее для большинства кодеков)
+                var result = TryGenerateThumbnail(timeMs, thumbnailPath, useCombinedSeek: true, cancellationToken);
+                
+                // If combined seek failed, try output-only seek as fallback (slower but more reliable)
+                // Если combined seek не сработал, fallback на output-only seek (медленнее, но надёжнее)
+                if (result == null && !cancellationToken.IsCancellationRequested)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Combined seek failed for {timeMs}ms, trying output-only seek...");
+                    result = TryGenerateThumbnail(timeMs, thumbnailPath, useCombinedSeek: false, cancellationToken);
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"FFmpeg thumbnail error: {ex.Message}");
+            }
+            finally
+            {
+                // Ensure cleanup / Гарантировать очистку
+                try { if (File.Exists(thumbnailPath)) File.Delete(thumbnailPath); } catch { }
+            }
+            
+            return null;
+        }
+        
+        /// <summary>
+        /// Try to generate a single thumbnail with specified seek strategy.
+        /// Попытаться сгенерировать миниатюру с указанной стратегией seek.
+        /// </summary>
+        private BitmapImage? TryGenerateThumbnail(long timeMs, string thumbnailPath, bool useCombinedSeek, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Delete previous attempt / Удалить предыдущую попытку
+                try { if (File.Exists(thumbnailPath)) File.Delete(thumbnailPath); } catch { }
+                
+                string arguments;
+                
+                if (useCombinedSeek && timeMs > 15000)
+                {
+                    // Combined seek: input seek to 15 sec before + output seek for precision
+                    // H.264 keyframe interval is typically 2-10 seconds, so 15 sec should be safe
+                    // Комбинированный seek: input seek на 15 сек до + output seek для точности
+                    // Интервал keyframe у H.264 обычно 2-10 секунд, так что 15 сек должно хватить
+                    const long PreSeekMs = 15000;
+                    long inputSeekMs = timeMs - PreSeekMs;
+                    var inputTime = TimeSpan.FromMilliseconds(inputSeekMs);
+                    var outputTime = TimeSpan.FromMilliseconds(PreSeekMs);
+                    
+                    string inputTimeStr = $"{(int)inputTime.TotalHours:D2}:{inputTime.Minutes:D2}:{inputTime.Seconds:D2}.{inputTime.Milliseconds:D3}";
+                    string outputTimeStr = $"{(int)outputTime.TotalHours:D2}:{outputTime.Minutes:D2}:{outputTime.Seconds:D2}.{outputTime.Milliseconds:D3}";
+                    
+                    arguments = $"-ss {inputTimeStr} -i \"{_currentVideoPath}\" -ss {outputTimeStr} -vframes 1 -s {ThumbnailWidth}x{ThumbnailHeight} -q:v 5 -y \"{thumbnailPath}\"";
+                }
+                else
+                {
+                    // Output-only seek: slower but works with any codec/container
+                    // Output-only seek: медленнее, но работает с любым кодеком/контейнером
+                    var time = TimeSpan.FromMilliseconds(timeMs);
+                    string timeStr = $"{(int)time.TotalHours:D2}:{time.Minutes:D2}:{time.Seconds:D2}.{time.Milliseconds:D3}";
+                    arguments = $"-i \"{_currentVideoPath}\" -ss {timeStr} -vframes 1 -s {ThumbnailWidth}x{ThumbnailHeight} -q:v 5 -y \"{thumbnailPath}\"";
+                }
 
                 var psi = new ProcessStartInfo
                 {
                     FileName = _ffmpegPath,
-                    Arguments = $"-ss {timeStr} -i \"{_currentVideoPath}\" -vframes 1 -s {ThumbnailWidth}x{ThumbnailHeight} -q:v 5 -y \"{thumbnailPath}\"",
+                    Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -319,20 +379,12 @@ namespace LangVPlayer.Services
                     bitmap.EndInit();
                     bitmap.Freeze(); // Make thread-safe / Сделать потокобезопасным
                     
-                    // Clean up temp file / Удалить временный файл
-                    try { File.Delete(thumbnailPath); } catch { }
-                    
                     return bitmap;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"FFmpeg thumbnail error: {ex.Message}");
-            }
-            finally
-            {
-                // Ensure cleanup / Гарантировать очистку
-                try { if (File.Exists(thumbnailPath)) File.Delete(thumbnailPath); } catch { }
+                System.Diagnostics.Debug.WriteLine($"TryGenerateThumbnail ({(useCombinedSeek ? "combined" : "output-only")}): {ex.Message}");
             }
             
             return null;
