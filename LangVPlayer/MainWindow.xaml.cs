@@ -43,6 +43,9 @@ public partial class MainWindow : Window
     // Playback Speed / Скорость воспроизведения
     private float _currentSpeed = 1.0f;
     private readonly float[] _speedPresets = { 0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+    
+    // Closing flag to prevent UI updates during shutdown / Флаг закрытия для предотвращения обновлений UI при завершении
+    private volatile bool _isClosing = false;
 
     #endregion
 
@@ -102,14 +105,44 @@ public partial class MainWindow : Window
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+        // Set closing flag immediately to stop all UI updates
+        // Установить флаг закрытия немедленно, чтобы остановить все обновления UI
+        _isClosing = true;
+        
         // Save current settings / Сохранение текущих настроек
         SaveCurrentSettings();
         
-        // Dispose VLC player / Освобождение ресурсов VLC
-        _mediaPlayer?.Stop();
-        _currentMedia?.Dispose();
-        _mediaPlayer?.Dispose();
-        _libVLC?.Dispose();
+        // Stop hide timer / Остановить таймер скрытия
+        _controlPanelTimer?.Stop();
+        
+        // Dispose VLC player safely / Безопасное освобождение ресурсов VLC
+        if (_mediaPlayer != null)
+        {
+            // Unsubscribe from events first to prevent callbacks during disposal
+            // Сначала отписываемся от событий, чтобы предотвратить обратные вызовы при освобождении
+            _mediaPlayer.Playing -= MediaPlayer_Playing;
+            _mediaPlayer.Paused -= MediaPlayer_Paused;
+            _mediaPlayer.Stopped -= MediaPlayer_Stopped;
+            _mediaPlayer.EndReached -= MediaPlayer_EndReached;
+            _mediaPlayer.LengthChanged -= MediaPlayer_LengthChanged;
+            _mediaPlayer.TimeChanged -= MediaPlayer_TimeChanged;
+            
+            // Stop playback asynchronously to avoid UI thread blocking
+            // Асинхронная остановка воспроизведения, чтобы избежать блокировки UI потока
+            try
+            {
+                if (_mediaPlayer.IsPlaying)
+                {
+                    _mediaPlayer.Stop();
+                }
+            }
+            catch { /* Ignore stop errors / Игнорировать ошибки остановки */ }
+        }
+        
+        // Dispose in correct order / Освобождение в правильном порядке
+        try { _currentMedia?.Dispose(); } catch { }
+        try { _mediaPlayer?.Dispose(); } catch { }
+        try { _libVLC?.Dispose(); } catch { }
     }
 
     private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -532,39 +565,46 @@ public partial class MainWindow : Window
 
     private void MediaPlayer_Playing(object? sender, EventArgs e)
     {
-        Dispatcher.Invoke(async () =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(async () =>
         {
+            if (_isClosing) return;
+            
             PlayPauseButton.Content = "\uE769"; // Pause icon
             NoVideoPlaceholder.Visibility = Visibility.Collapsed;
             
             // Small delay to ensure media is fully loaded / Небольшая задержка для полной загрузки медиа
             await System.Threading.Tasks.Task.Delay(200);
             
-            if (_mediaPlayer != null)
+            if (_isClosing || _mediaPlayer == null) return;
+            
+            // Ensure audio track is selected / Убедиться что аудиодорожка выбрана
+            var audioTrackCount = _mediaPlayer.AudioTrackCount;
+            if (audioTrackCount > 0 && _mediaPlayer.AudioTrack == -1)
             {
-                // Ensure audio track is selected / Убедиться что аудиодорожка выбрана
-                var audioTrackCount = _mediaPlayer.AudioTrackCount;
-                if (audioTrackCount > 0 && _mediaPlayer.AudioTrack == -1)
-                {
-                    // Select first audio track if none selected / Выбрать первую аудиодорожку если ни одна не выбрана
-                    _mediaPlayer.SetAudioTrack(1);
-                    System.Diagnostics.Debug.WriteLine($"Audio track auto-selected. Total tracks: {audioTrackCount}");
-                }
-                
-                // Restore volume after media starts playing / Восстановить громкость после начала воспроизведения
-                int targetVolume = _isMuted ? 0 : (int)VolumeSlider.Value;
-                _mediaPlayer.Volume = targetVolume;
-                
-                // Debug: Log audio info / Отладка: Логирование информации об аудио
-                System.Diagnostics.Debug.WriteLine($"Volume: {targetVolume}, AudioTrack: {_mediaPlayer.AudioTrack}, AudioTrackCount: {audioTrackCount}");
+                // Select first audio track if none selected / Выбрать первую аудиодорожку если ни одна не выбрана
+                _mediaPlayer.SetAudioTrack(1);
+                System.Diagnostics.Debug.WriteLine($"Audio track auto-selected. Total tracks: {audioTrackCount}");
             }
+            
+            // Restore volume after media starts playing / Восстановить громкость после начала воспроизведения
+            int targetVolume = _isMuted ? 0 : (int)VolumeSlider.Value;
+            _mediaPlayer.Volume = targetVolume;
+            
+            // Debug: Log audio info / Отладка: Логирование информации об аудио
+            System.Diagnostics.Debug.WriteLine($"Volume: {targetVolume}, AudioTrack: {_mediaPlayer.AudioTrack}, AudioTrackCount: {audioTrackCount}");
         });
     }
 
     private void MediaPlayer_Paused(object? sender, EventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(() =>
         {
+            if (_isClosing) return;
+            
             PlayPauseButton.Content = "\uE768"; // Play icon
             
             // Show control panel when paused in fullscreen / Показываем панель управления при паузе в полноэкранном режиме
@@ -577,8 +617,12 @@ public partial class MainWindow : Window
 
     private void MediaPlayer_Stopped(object? sender, EventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(() =>
         {
+            if (_isClosing) return;
+            
             PlayPauseButton.Content = "\uE768"; // Play icon
             
             // Show control panel when stopped in fullscreen / Показываем панель управления при остановке в полноэкранном режиме
@@ -591,8 +635,12 @@ public partial class MainWindow : Window
 
     private void MediaPlayer_EndReached(object? sender, EventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(() =>
         {
+            if (_isClosing) return;
+            
             PlayPauseButton.Content = "\uE768"; // Play icon
             TimelineSlider.Value = 0;
             CurrentTimeText.Text = "00:00";
@@ -613,8 +661,12 @@ public partial class MainWindow : Window
 
     private void MediaPlayer_LengthChanged(object? sender, MediaPlayerLengthChangedEventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(() =>
         {
+            if (_isClosing) return;
+            
             TimelineSlider.Maximum = e.Length;
             TotalTimeText.Text = FormatTime(TimeSpan.FromMilliseconds(e.Length));
         });
@@ -624,8 +676,12 @@ public partial class MainWindow : Window
     {
         // TimeChanged is called from VLC when playback position changes
         // TimeChanged вызывается VLC когда позиция воспроизведения меняется
-        Dispatcher.Invoke(() =>
+        if (_isClosing) return;
+        
+        Dispatcher.BeginInvoke(() =>
         {
+            if (_isClosing) return;
+            
             // Skip update if user is dragging slider
             // Пропустить обновление если пользователь перетаскивает слайдер
             if (_isDraggingSlider)
