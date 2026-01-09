@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -46,6 +47,13 @@ public partial class MainWindow : Window
     
     // Closing flag to prevent UI updates during shutdown / Флаг закрытия для предотвращения обновлений UI при завершении
     private volatile bool _isClosing = false;
+    
+    // Thumbnail preview / Превью миниатюр
+    private ThumbnailService? _thumbnailService;
+    private CancellationTokenSource? _thumbnailCts;
+    private DispatcherTimer? _thumbnailDebounceTimer;
+    private long _lastThumbnailTimeMs = -1;
+    private bool _isDraggingThumb = false;
 
     #endregion
 
@@ -63,6 +71,18 @@ public partial class MainWindow : Window
         
         // Initialize control panel hide timer / Инициализация таймера скрытия панели управления
         InitializeControlPanelTimer();
+        
+        // Initialize thumbnail service (graceful - will disable if FFmpeg not found)
+        // Инициализация сервиса миниатюр (graceful - отключится если FFmpeg не найден)
+        _thumbnailService = new ThumbnailService();
+        
+        // Initialize thumbnail debounce timer (150ms delay before generating)
+        // Инициализация таймера debounce для миниатюр (150мс задержка перед генерацией)
+        _thumbnailDebounceTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(150)
+        };
+        _thumbnailDebounceTimer.Tick += ThumbnailDebounceTimer_Tick;
         
         // Initialize playlist / Инициализация плейлиста
         PlaylistListBox.ItemsSource = _playlist;
@@ -109,11 +129,22 @@ public partial class MainWindow : Window
         // Установить флаг закрытия немедленно, чтобы остановить все обновления UI
         _isClosing = true;
         
+        // Cancel and dispose thumbnail CTS / Отменить и освободить CTS миниатюр
+        _thumbnailCts?.Cancel();
+        _thumbnailCts?.Dispose();
+        _thumbnailCts = null;
+        
+        // Stop thumbnail debounce timer / Остановить таймер debounce миниатюр
+        _thumbnailDebounceTimer?.Stop();
+        
         // Save current settings / Сохранение текущих настроек
         SaveCurrentSettings();
         
         // Stop hide timer / Остановить таймер скрытия
         _controlPanelTimer?.Stop();
+        
+        // Dispose thumbnail service / Освободить сервис миниатюр
+        _thumbnailService?.Dispose();
         
         // Dispose VLC player safely / Безопасное освобождение ресурсов VLC
         if (_mediaPlayer != null)
@@ -520,6 +551,198 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Timeline Thumbnail Preview / Превью миниатюр на таймлайне
+
+    /// <summary>
+    /// Handle mouse move over timeline - show thumbnail preview with debounce
+    /// Обработка движения мыши над таймлайном - показать превью миниатюры с debounce
+    /// </summary>
+    private void TimelineMouseTracker_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        // Skip if dragging thumb or no video / Пропустить если перетаскиваем бегунок или нет видео
+        if (_isDraggingThumb || _mediaPlayer == null || _mediaPlayer.Length <= 0)
+        {
+            return;
+        }
+        
+        // Calculate time from mouse position / Вычислить время из позиции мыши
+        var point = e.GetPosition(TimelineSlider);
+        var ratio = point.X / TimelineSlider.ActualWidth;
+        ratio = Math.Max(0.0, Math.Min(1.0, ratio));
+        var timeMs = (long)(ratio * _mediaPlayer.Length);
+        
+        // Update popup position (center popup on mouse X position)
+        // Обновить позицию popup (центрировать popup по позиции X мыши)
+        double popupWidth = _thumbnailService?.IsEnabled == true ? ThumbnailService.ThumbnailWidth + 8 : 50;
+        ThumbnailPopup.HorizontalOffset = point.X - popupWidth / 2;
+        
+        // Update time text immediately / Обновить текст времени сразу
+        ThumbnailTimeText.Text = FormatTime(TimeSpan.FromMilliseconds(timeMs));
+        
+        // Show popup / Показать popup
+        ThumbnailPopup.IsOpen = true;
+        
+        // Store time for debounced thumbnail generation
+        // Сохранить время для отложенной генерации миниатюры
+        _lastThumbnailTimeMs = timeMs;
+        
+        // Restart debounce timer / Перезапустить таймер debounce
+        _thumbnailDebounceTimer?.Stop();
+        _thumbnailDebounceTimer?.Start();
+    }
+
+    /// <summary>
+    /// Debounce timer tick - generate thumbnail after mouse stops moving
+    /// Тик таймера debounce - генерировать миниатюру после остановки мыши
+    /// </summary>
+    private async void ThumbnailDebounceTimer_Tick(object? sender, EventArgs e)
+    {
+        _thumbnailDebounceTimer?.Stop();
+        
+        if (_isClosing || !ThumbnailPopup.IsOpen || _lastThumbnailTimeMs < 0)
+            return;
+        
+        if (_thumbnailService?.IsEnabled != true)
+        {
+            ThumbnailImageBorder.Visibility = Visibility.Collapsed;
+            return;
+        }
+        
+        // Cancel previous request and dispose old CTS / Отменить предыдущий запрос и освободить старый CTS
+        var oldCts = _thumbnailCts;
+        _thumbnailCts = new CancellationTokenSource();
+        if (oldCts != null)
+        {
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
+        
+        try
+        {
+            var thumbnail = await _thumbnailService.GetThumbnailAsync(_lastThumbnailTimeMs, _thumbnailCts.Token);
+            
+            if (thumbnail != null && ThumbnailPopup.IsOpen && !_isClosing)
+            {
+                ThumbnailImage.Source = thumbnail;
+                ThumbnailImageBorder.Visibility = Visibility.Visible;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when cancelled / Ожидаемо при отмене
+        }
+        catch
+        {
+            // Ignore errors - stability first / Игнорировать ошибки - стабильность прежде всего
+        }
+    }
+
+    /// <summary>
+    /// Handle mouse leave timeline - hide thumbnail preview
+    /// Обработка ухода мыши с таймлайна - скрыть превью миниатюры
+    /// </summary>
+    private void TimelineMouseTracker_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        // Stop debounce timer / Остановить таймер debounce
+        _thumbnailDebounceTimer?.Stop();
+        _lastThumbnailTimeMs = -1;
+        
+        // Cancel and dispose CTS / Отменить и освободить CTS
+        var oldCts = _thumbnailCts;
+        _thumbnailCts = null;
+        if (oldCts != null)
+        {
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
+        
+        // Hide popup / Скрыть popup
+        ThumbnailPopup.IsOpen = false;
+        ThumbnailImage.Source = null;
+        ThumbnailImageBorder.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// Handle mouse down on timeline overlay - start drag or seek
+    /// Обработка нажатия мыши на таймлайне - начать drag или seek
+    /// </summary>
+    private void TimelineMouseTracker_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_mediaPlayer == null || _mediaPlayer.Length <= 0)
+            return;
+        
+        // Check if click is on thumb / Проверить клик на бегунке
+        var thumb = FindVisualChild<System.Windows.Controls.Primitives.Thumb>(TimelineSlider);
+        if (thumb != null)
+        {
+            var thumbPos = e.GetPosition(thumb);
+            if (thumbPos.X >= 0 && thumbPos.X <= thumb.ActualWidth &&
+                thumbPos.Y >= 0 && thumbPos.Y <= thumb.ActualHeight)
+            {
+                // Click on thumb - start dragging / Клик на бегунке - начать перетаскивание
+                _isDraggingThumb = true;
+                _isDraggingSlider = true;
+                ThumbnailPopup.IsOpen = false;
+                
+                // Capture mouse for drag / Захватить мышь для drag
+                var tracker = sender as System.Windows.UIElement;
+                tracker?.CaptureMouse();
+                return;
+            }
+        }
+        
+        // Click on track - seek to position / Клик на дорожке - перемотка
+        PerformSeekFromMousePosition(e.GetPosition(TimelineSlider));
+    }
+
+    /// <summary>
+    /// Handle mouse up on timeline overlay - end drag
+    /// Обработка отпускания мыши на таймлайне - завершить drag
+    /// </summary>
+    private void TimelineMouseTracker_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDraggingThumb)
+        {
+            _isDraggingThumb = false;
+            _isDraggingSlider = false;
+            
+            // Release mouse capture / Освободить захват мыши
+            var tracker = sender as System.Windows.UIElement;
+            tracker?.ReleaseMouseCapture();
+            
+            // Perform final seek / Выполнить финальную перемотку
+            PerformSeekFromMousePosition(e.GetPosition(TimelineSlider));
+        }
+    }
+
+    /// <summary>
+    /// Perform seek from mouse position / Выполнить перемотку по позиции мыши
+    /// </summary>
+    private void PerformSeekFromMousePosition(System.Windows.Point point)
+    {
+        if (_mediaPlayer == null || _mediaPlayer.Length <= 0)
+            return;
+        
+        var ratio = point.X / TimelineSlider.ActualWidth;
+        ratio = Math.Max(0.0, Math.Min(1.0, ratio));
+        var newTimeMs = ratio * _mediaPlayer.Length;
+        
+        // Block TimeChanged updates / Блокировать обновления TimeChanged
+        _pendingSeekPosition = (long)newTimeMs;
+        
+        // Update UI / Обновить интерфейс
+        TimelineSlider.Value = newTimeMs;
+        CurrentTimeText.Text = FormatTime(TimeSpan.FromMilliseconds(newTimeMs));
+        
+        // Perform seek / Выполнить перемотку
+        _mediaPlayer.Position = (float)ratio;
+        
+        // Return focus to window / Вернуть фокус на окно
+        this.Focus();
+    }
+
+    #endregion
+
     #region VLC Player Methods / Методы VLC плеера
 
     private void InitializeVlcPlayer()
@@ -669,6 +892,10 @@ public partial class MainWindow : Window
             
             TimelineSlider.Maximum = e.Length;
             TotalTimeText.Text = FormatTime(TimeSpan.FromMilliseconds(e.Length));
+            
+            // Update thumbnail service with current video info
+            // Обновить сервис миниатюр информацией о текущем видео
+            _thumbnailService?.SetVideo(_currentVideoPath, e.Length);
         });
     }
 

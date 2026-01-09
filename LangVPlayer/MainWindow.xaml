@@ -354,6 +354,52 @@
                         ValueChanged="TimelineSlider_ValueChanged"
                         Thumb.DragStarted="TimelineSlider_DragStarted"
                         Thumb.DragCompleted="TimelineSlider_DragCompleted"/>
+                
+                <!-- Transparent overlay for thumbnail preview mouse tracking -->
+                <!-- Прозрачный слой для отслеживания мыши и показа миниатюр -->
+                <Border x:Name="TimelineMouseTracker"
+                        Background="Transparent"
+                        IsHitTestVisible="True"
+                        MouseMove="TimelineMouseTracker_MouseMove"
+                        MouseLeave="TimelineMouseTracker_MouseLeave"
+                        MouseLeftButtonDown="TimelineMouseTracker_MouseLeftButtonDown"
+                        MouseLeftButtonUp="TimelineMouseTracker_MouseLeftButtonUp"/>
+                
+                <!-- Thumbnail Preview Popup / Popup превью миниатюры -->
+                <Popup x:Name="ThumbnailPopup" 
+                       Placement="Top" 
+                       PlacementTarget="{Binding ElementName=TimelineSlider}"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade"
+                       IsOpen="False"
+                       HorizontalOffset="0"
+                       VerticalOffset="-5">
+                    <Border Background="{StaticResource SecondaryBackgroundBrush}" 
+                            BorderBrush="{StaticResource BorderBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="4"
+                            Padding="4">
+                        <StackPanel>
+                            <!-- Thumbnail Image / Изображение миниатюры -->
+                            <Border x:Name="ThumbnailImageBorder"
+                                    Width="200" Height="112"
+                                    Background="#1E1E1E"
+                                    CornerRadius="2"
+                                    Visibility="Collapsed">
+                                <Image x:Name="ThumbnailImage" 
+                                       Stretch="Uniform"/>
+                            </Border>
+                            <!-- Time Label / Метка времени -->
+                            <TextBlock x:Name="ThumbnailTimeText"
+                                       Text="00:00"
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
             </Grid>
 
             <!-- Controls / Элементы управления -->

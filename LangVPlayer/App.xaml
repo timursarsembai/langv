@@ -137,19 +137,19 @@
 
             <!-- Video Slider Style / Стиль ползунка видео -->
             <Style x:Key="VideoSliderStyle" TargetType="Slider">
-                <Setter Property="Height" Value="20"/>
+                <Setter Property="Height" Value="28"/>
                 <Setter Property="Background" Value="#3F3F3F"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Slider">
                             <Grid>
-                                <Border x:Name="TrackBackground" Height="4" Background="#3F3F3F" CornerRadius="2" VerticalAlignment="Center"/>
+                                <Border x:Name="TrackBackground" Height="8" Background="#3F3F3F" CornerRadius="4" VerticalAlignment="Center"/>
                                 <Track x:Name="PART_Track">
                                     <Track.DecreaseRepeatButton>
                                         <RepeatButton Command="Slider.DecreaseLarge">
                                             <RepeatButton.Template>
                                                 <ControlTemplate TargetType="RepeatButton">
-                                                    <Border Height="4" Background="#007ACC" CornerRadius="2"/>
+                                                    <Border Height="8" Background="#007ACC" CornerRadius="4"/>
                                                 </ControlTemplate>
                                             </RepeatButton.Template>
                                         </RepeatButton>
@@ -158,7 +158,7 @@
                                         <Thumb>
                                             <Thumb.Template>
                                                 <ControlTemplate TargetType="Thumb">
-                                                    <Ellipse Width="14" Height="14" Fill="#FFFFFF"/>
+                                                    <Ellipse Width="18" Height="18" Fill="#FFFFFF"/>
                                                 </ControlTemplate>
                                             </Thumb.Template>
                                         </Thumb>
