@@ -39,6 +39,10 @@ public partial class MainWindow : Window
     // Playlist / Плейлист
     private ObservableCollection<PlaylistItem> _playlist = new();
     private int _currentPlaylistIndex = -1;
+    
+    // Playback Speed / Скорость воспроизведения
+    private float _currentSpeed = 1.0f;
+    private readonly float[] _speedPresets = { 0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
 
     #endregion
 
@@ -148,6 +152,19 @@ public partial class MainWindow : Window
                     ToggleFullscreen();
                     e.Handled = true;
                 }
+                break;
+            // Speed controls / Управление скоростью
+            case Key.OemOpenBrackets: // '[' key
+                ChangeSpeed(-0.25f);
+                e.Handled = true;
+                break;
+            case Key.OemCloseBrackets: // ']' key
+                ChangeSpeed(0.25f);
+                e.Handled = true;
+                break;
+            case Key.Back: // Backspace - reset speed
+                SetSpeed(1.0f);
+                e.Handled = true;
                 break;
         }
     }
@@ -689,6 +706,9 @@ public partial class MainWindow : Window
             // Reset pending seek position / Сбросить ожидающую позицию перемотки
             _pendingSeekPosition = -1;
             
+            // Reset speed to normal / Сбросить скорость к нормальной
+            SetSpeed(1.0f);
+            
             _currentVideoPath = filePath;
             _currentMedia = new Media(_libVLC, new Uri(filePath));
             _mediaPlayer.Play(_currentMedia);
@@ -753,6 +773,93 @@ public partial class MainWindow : Window
         // VLC supports 0-200% volume / VLC поддерживает громкость 0-200%
         var newVolume = Math.Max(0, Math.Min(200, VolumeSlider.Value + delta));
         VolumeSlider.Value = newVolume;
+    }
+
+    #endregion
+
+    #region Speed Control / Управление скоростью
+
+    /// <summary>
+    /// Change playback speed by delta (e.g., +0.25 or -0.25)
+    /// Изменить скорость воспроизведения на delta
+    /// </summary>
+    private void ChangeSpeed(float delta)
+    {
+        float newSpeed = _currentSpeed + delta;
+        // Clamp to 0.25 - 2.0 range / Ограничить диапазон 0.25 - 2.0
+        newSpeed = Math.Max(0.25f, Math.Min(2.0f, newSpeed));
+        SetSpeed(newSpeed);
+    }
+
+    /// <summary>
+    /// Set exact playback speed
+    /// Установить точную скорость воспроизведения
+    /// </summary>
+    private void SetSpeed(float speed)
+    {
+        _currentSpeed = speed;
+        
+        // Apply speed to VLC player / Применить скорость к VLC плееру
+        if (_mediaPlayer != null)
+        {
+            _mediaPlayer.SetRate(_currentSpeed);
+        }
+        
+        // Update UI / Обновить UI
+        UpdateSpeedDisplay();
+    }
+
+    /// <summary>
+    /// Update speed display text
+    /// Обновить отображение скорости
+    /// </summary>
+    private void UpdateSpeedDisplay()
+    {
+        SpeedText.Text = $"{_currentSpeed:F2}x".Replace(",", ".");
+        
+        // Highlight if not normal speed / Подсветить если скорость не нормальная
+        if (Math.Abs(_currentSpeed - 1.0f) < 0.01f)
+        {
+            SpeedText.Foreground = (System.Windows.Media.Brush)FindResource("TextBrush");
+        }
+        else
+        {
+            SpeedText.Foreground = (System.Windows.Media.Brush)FindResource("AccentBrush");
+        }
+    }
+
+    // Speed control button handlers / Обработчики кнопок скорости
+    private void SpeedDown_Click(object sender, RoutedEventArgs e)
+    {
+        ChangeSpeed(-0.25f);
+    }
+
+    private void SpeedUp_Click(object sender, RoutedEventArgs e)
+    {
+        ChangeSpeed(0.25f);
+    }
+
+    private void SpeedText_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Reset to normal speed on click / Сброс к нормальной скорости по клику
+        SetSpeed(1.0f);
+    }
+
+    private void SpeedReset_Click(object sender, RoutedEventArgs e)
+    {
+        SetSpeed(1.0f);
+    }
+
+    private void SpeedPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.MenuItem menuItem && menuItem.Tag is string tagValue)
+        {
+            if (float.TryParse(tagValue, System.Globalization.NumberStyles.Float, 
+                System.Globalization.CultureInfo.InvariantCulture, out float speed))
+            {
+                SetSpeed(speed);
+            }
+        }
     }
 
     #endregion

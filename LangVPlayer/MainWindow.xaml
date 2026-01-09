@@ -136,6 +136,72 @@
                                 <TextBlock Text="Громкость -"/>
                             </MenuItem.Header>
                         </MenuItem>
+                        <Separator/>
+                        <!-- Speed Submenu / Подменю скорости -->
+                        <MenuItem>
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xEC57;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                            </MenuItem.Icon>
+                            <MenuItem.Header>
+                                <TextBlock Text="Скорость"/>
+                            </MenuItem.Header>
+                            <MenuItem Click="SpeedUp_Click" InputGestureText="]">
+                                <MenuItem.Header>
+                                    <TextBlock Text="Увеличить скорость"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Click="SpeedDown_Click" InputGestureText="[">
+                                <MenuItem.Header>
+                                    <TextBlock Text="Уменьшить скорость"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Click="SpeedReset_Click" InputGestureText="Backspace">
+                                <MenuItem.Header>
+                                    <TextBlock Text="Сбросить (1.0x)"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem x:Name="Speed025" Click="SpeedPreset_Click" Tag="0.25">
+                                <MenuItem.Header>
+                                    <TextBlock Text="0.25x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed050" Click="SpeedPreset_Click" Tag="0.5">
+                                <MenuItem.Header>
+                                    <TextBlock Text="0.5x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed075" Click="SpeedPreset_Click" Tag="0.75">
+                                <MenuItem.Header>
+                                    <TextBlock Text="0.75x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed100" Click="SpeedPreset_Click" Tag="1.0">
+                                <MenuItem.Header>
+                                    <TextBlock Text="1.0x (норм.)"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed125" Click="SpeedPreset_Click" Tag="1.25">
+                                <MenuItem.Header>
+                                    <TextBlock Text="1.25x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed150" Click="SpeedPreset_Click" Tag="1.5">
+                                <MenuItem.Header>
+                                    <TextBlock Text="1.5x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed175" Click="SpeedPreset_Click" Tag="1.75">
+                                <MenuItem.Header>
+                                    <TextBlock Text="1.75x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem x:Name="Speed200" Click="SpeedPreset_Click" Tag="2.0">
+                                <MenuItem.Header>
+                                    <TextBlock Text="2.0x"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </MenuItem>
                     </MenuItem>
                     <!-- View Menu / Меню Вид -->
                     <MenuItem>
@@ -339,6 +405,51 @@
                                Foreground="{StaticResource TextSecondaryBrush}" 
                                FontSize="12"
                                VerticalAlignment="Center"/>
+                    
+                    <!-- Speed Control / Управление скоростью -->
+                    <Border Background="#3F3F46" 
+                            CornerRadius="4" 
+                            Margin="15,0,0,0" 
+                            Padding="2"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="SpeedDownButton"
+                                    Content="&#xE96F;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="10"
+                                    Width="24" Height="24"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource TextBrush}"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Focusable="False"
+                                    Click="SpeedDown_Click"
+                                    ToolTip="Slower / Медленнее (Shift+[)"/>
+                            <TextBlock x:Name="SpeedText"
+                                       Text="1.0x"
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Width="36"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Cursor="Hand"
+                                       MouseLeftButtonDown="SpeedText_MouseLeftButtonDown"
+                                       ToolTip="Reset speed / Сбросить скорость"/>
+                            <Button x:Name="SpeedUpButton"
+                                    Content="&#xE970;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="10"
+                                    Width="24" Height="24"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource TextBrush}"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Focusable="False"
+                                    Click="SpeedUp_Click"
+                                    ToolTip="Faster / Быстрее (Shift+])"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <!-- Volume & Fullscreen on right / Громкость и полный экран справа -->
