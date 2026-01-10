@@ -67,6 +67,18 @@ public partial class MainWindow : Window
     // Compact mode settings / Настройки компактного режима
     private const double CompactWidth = 400;
     private const double CompactHeight = 225; // 16:9 aspect ratio
+    
+    // Subtitles / Субтитры
+    private List<Models.SubtitleItem> _primarySubtitles = new();
+    private List<Models.SubtitleItem> _secondarySubtitles = new();
+    private string? _primarySubtitlePath;
+    private string? _secondarySubtitlePath;
+    private bool _showPrimarySubtitles = true;
+    private bool _showSecondarySubtitles = true;
+    private DispatcherTimer? _subtitleTimer;
+    private Models.SubtitleItem? _currentPrimarySubtitle;
+    private Models.SubtitleItem? _currentSecondarySubtitle;
+    private int _selectedEmbeddedSubtitleId = -1; // -1 = disabled / отключены
 
     #endregion
 
@@ -99,6 +111,14 @@ public partial class MainWindow : Window
         
         // Initialize playlist / Инициализация плейлиста
         PlaylistListBox.ItemsSource = _playlist;
+        
+        // Initialize subtitle sync timer (100ms for smooth subtitle display)
+        // Инициализация таймера синхронизации субтитров (100мс для плавного отображения)
+        _subtitleTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(100)
+        };
+        _subtitleTimer.Tick += SubtitleTimer_Tick;
         
         // Register timeline slider click handler with handledEventsToo = true
         // Регистрация обработчика клика по слайдеру с handledEventsToo = true
@@ -152,12 +172,25 @@ public partial class MainWindow : Window
     
     private void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        // Ensure window has keyboard focus on any mouse click / 
-        // Обеспечить фокус клавиатуры при любом клике мыши
-        if (!_isClosing)
+        // Ensure window has keyboard focus on any mouse click, but skip for Menu items
+        // Обеспечить фокус клавиатуры при любом клике мыши, но пропустить для элементов Menu
+        if (_isClosing) return;
+        
+        // Don't steal focus from Menu - it breaks menu item clicks
+        // Не забирать фокус у Menu - это ломает клики по пунктам меню
+        var source = e.OriginalSource as DependencyObject;
+        while (source != null)
         {
-            this.Focus();
+            if (source is System.Windows.Controls.Menu || 
+                source is System.Windows.Controls.MenuItem ||
+                source is System.Windows.Controls.Primitives.Popup)
+            {
+                return; // Let menu handle the click / Пусть меню обработает клик
+            }
+            source = System.Windows.Media.VisualTreeHelper.GetParent(source);
         }
+        
+        this.Focus();
     }
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -179,6 +212,9 @@ public partial class MainWindow : Window
         
         // Stop hide timer / Остановить таймер скрытия
         _controlPanelTimer?.Stop();
+        
+        // Stop subtitle timer / Остановить таймер субтитров
+        _subtitleTimer?.Stop();
         
         // Dispose thumbnail service / Освободить сервис миниатюр
         _thumbnailService?.Dispose();
@@ -866,10 +902,27 @@ public partial class MainWindow : Window
             PlayPauseButton.Content = "\uE769"; // Pause icon
             NoVideoPlaceholder.Visibility = Visibility.Collapsed;
             
+            // Start subtitle timer / Запустить таймер субтитров
+            _subtitleTimer?.Start();
+            
             // Small delay to ensure media is fully loaded / Небольшая задержка для полной загрузки медиа
             await System.Threading.Tasks.Task.Delay(200);
             
             if (_isClosing || _mediaPlayer == null) return;
+            
+            // Update embedded subtitles menu / Обновить меню встроенных субтитров
+            UpdateEmbeddedSubtitlesMenu();
+            
+            // Apply selected embedded subtitle track or disable if using external subs
+            // Применить выбранную встроенную дорожку или отключить если используются внешние
+            if (_selectedEmbeddedSubtitleId == -1 || _primarySubtitles.Count > 0 || _secondarySubtitles.Count > 0)
+            {
+                _mediaPlayer.SetSpu(-1); // Disable built-in to avoid duplication
+            }
+            else
+            {
+                _mediaPlayer.SetSpu(_selectedEmbeddedSubtitleId);
+            }
             
             // Ensure audio track is selected / Убедиться что аудиодорожка выбрана
             var audioTrackCount = _mediaPlayer.AudioTrackCount;
@@ -899,6 +952,9 @@ public partial class MainWindow : Window
             
             PlayPauseButton.Content = "\uE768"; // Play icon
             
+            // Stop subtitle timer when paused / Остановить таймер субтитров при паузе
+            _subtitleTimer?.Stop();
+            
             // Show control panel when paused in fullscreen / Показываем панель управления при паузе в полноэкранном режиме
             if (_isFullscreen)
             {
@@ -916,6 +972,9 @@ public partial class MainWindow : Window
             if (_isClosing) return;
             
             PlayPauseButton.Content = "\uE768"; // Play icon
+            
+            // Stop subtitle timer / Остановить таймер субтитров
+            _subtitleTimer?.Stop();
             
             // Show control panel when stopped in fullscreen / Показываем панель управления при остановке в полноэкранном режиме
             if (_isFullscreen)
@@ -936,6 +995,12 @@ public partial class MainWindow : Window
             PlayPauseButton.Content = "\uE768"; // Play icon
             TimelineSlider.Value = 0;
             CurrentTimeText.Text = "00:00";
+            
+            // Stop subtitle timer / Остановить таймер субтитров
+            _subtitleTimer?.Stop();
+            // Hide subtitles / Скрыть субтитры
+            PrimarySubtitleBorder.Visibility = Visibility.Collapsed;
+            SecondarySubtitleBorder.Visibility = Visibility.Collapsed;
             
             // Show control panel when video ends in fullscreen / Показываем панель управления при завершении видео в полноэкранном режиме
             if (_isFullscreen)
@@ -1061,10 +1126,19 @@ public partial class MainWindow : Window
             // Reset speed to normal / Сбросить скорость к нормальной
             SetSpeed(1.0f);
             
+            // Clear current subtitles display / Очистить отображение текущих субтитров
+            _currentPrimarySubtitle = null;
+            _currentSecondarySubtitle = null;
+            PrimarySubtitleBorder.Visibility = Visibility.Collapsed;
+            SecondarySubtitleBorder.Visibility = Visibility.Collapsed;
+            
             _currentVideoPath = filePath;
             _currentMedia = new Media(_libVLC, new Uri(filePath));
             _mediaPlayer.Play(_currentMedia);
             _settings.LastVideoPath = filePath;
+            
+            // Try to auto-load subtitles with same name / Попытаться автозагрузить субтитры с тем же именем
+            TryAutoLoadSubtitles(filePath);
         }
         catch (Exception ex)
         {
@@ -1608,6 +1682,358 @@ public partial class MainWindow : Window
             PlayPlaylistItem(_currentPlaylistIndex - 1);
         }
     }
+
+    #endregion
+
+    #region Subtitle Methods / Методы субтитров
+
+    /// <summary>
+    /// Timer tick handler for subtitle synchronization.
+    /// Обработчик тика таймера для синхронизации субтитров.
+    /// </summary>
+    private void SubtitleTimer_Tick(object? sender, EventArgs e)
+    {
+        if (_isClosing || _mediaPlayer == null)
+            return;
+
+        long currentTimeMs = _mediaPlayer.Time;
+        
+        // Update primary subtitles / Обновить основные субтитры
+        if (_showPrimarySubtitles && _primarySubtitles.Count > 0)
+        {
+            var subtitle = Services.SrtParserService.FindActiveSubtitle(_primarySubtitles, currentTimeMs);
+            if (subtitle != _currentPrimarySubtitle)
+            {
+                _currentPrimarySubtitle = subtitle;
+                UpdatePrimarySubtitleDisplay(subtitle);
+            }
+        }
+        
+        // Update secondary subtitles / Обновить вторые субтитры
+        if (_showSecondarySubtitles && _secondarySubtitles.Count > 0)
+        {
+            var subtitle = Services.SrtParserService.FindActiveSubtitle(_secondarySubtitles, currentTimeMs);
+            if (subtitle != _currentSecondarySubtitle)
+            {
+                _currentSecondarySubtitle = subtitle;
+                UpdateSecondarySubtitleDisplay(subtitle);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Update primary subtitle display.
+    /// Обновить отображение основных субтитров.
+    /// </summary>
+    private void UpdatePrimarySubtitleDisplay(Models.SubtitleItem? subtitle)
+    {
+        if (subtitle != null)
+        {
+            PrimarySubtitleText.Text = subtitle.Text;
+            PrimarySubtitleBorder.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            PrimarySubtitleBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    /// <summary>
+    /// Update secondary subtitle display.
+    /// Обновить отображение вторых субтитров.
+    /// </summary>
+    private void UpdateSecondarySubtitleDisplay(Models.SubtitleItem? subtitle)
+    {
+        if (subtitle != null)
+        {
+            SecondarySubtitleText.Text = subtitle.Text;
+            SecondarySubtitleBorder.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            SecondarySubtitleBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    /// <summary>
+    /// Load primary subtitle file.
+    /// Загрузить файл основных субтитров.
+    /// </summary>
+    private void LoadPrimarySubtitles(string filePath)
+    {
+        _primarySubtitles = Services.SrtParserService.Parse(filePath);
+        _primarySubtitlePath = filePath;
+        _currentPrimarySubtitle = null;
+        
+        // Disable embedded subtitles when loading external / Отключить встроенные при загрузке внешних
+        _selectedEmbeddedSubtitleId = -1;
+        _mediaPlayer?.SetSpu(-1);
+        
+        // Update menu label / Обновить метку меню
+        string fileName = System.IO.Path.GetFileName(filePath);
+        MenuTogglePrimarySubs.Header = $"Субтитры 1: {fileName}";
+        MenuTogglePrimarySubs.IsChecked = true;
+        _showPrimarySubtitles = true;
+        
+        System.Diagnostics.Debug.WriteLine($"Loaded {_primarySubtitles.Count} primary subtitles from {fileName}");
+    }
+
+    /// <summary>
+    /// Load secondary subtitle file.
+    /// Загрузить файл вторых субтитров.
+    /// </summary>
+    private void LoadSecondarySubtitles(string filePath)
+    {
+        _secondarySubtitles = Services.SrtParserService.Parse(filePath);
+        _secondarySubtitlePath = filePath;
+        _currentSecondarySubtitle = null;
+        
+        // Disable embedded subtitles when loading external / Отключить встроенные при загрузке внешних
+        _selectedEmbeddedSubtitleId = -1;
+        _mediaPlayer?.SetSpu(-1);
+        
+        // Update menu label / Обновить метку меню
+        string fileName = System.IO.Path.GetFileName(filePath);
+        MenuToggleSecondarySubs.Header = $"Субтитры 2: {fileName}";
+        MenuToggleSecondarySubs.IsChecked = true;
+        _showSecondarySubtitles = true;
+        
+        System.Diagnostics.Debug.WriteLine($"Loaded {_secondarySubtitles.Count} secondary subtitles from {fileName}");
+    }
+
+    /// <summary>
+    /// Clear all subtitles.
+    /// Очистить все субтитры.
+    /// </summary>
+    private void ClearAllSubtitles()
+    {
+        _primarySubtitles.Clear();
+        _secondarySubtitles.Clear();
+        _primarySubtitlePath = null;
+        _secondarySubtitlePath = null;
+        _currentPrimarySubtitle = null;
+        _currentSecondarySubtitle = null;
+        
+        PrimarySubtitleBorder.Visibility = Visibility.Collapsed;
+        SecondarySubtitleBorder.Visibility = Visibility.Collapsed;
+        
+        MenuTogglePrimarySubs.Header = "Субтитры 1: (нет)";
+        MenuToggleSecondarySubs.Header = "Субтитры 2: (нет)";
+    }
+
+    /// <summary>
+    /// Try to auto-load subtitles with same name as video file.
+    /// Попытаться автоматически загрузить субтитры с тем же именем, что и видеофайл.
+    /// </summary>
+    private void TryAutoLoadSubtitles(string videoPath)
+    {
+        if (string.IsNullOrEmpty(videoPath))
+            return;
+
+        string directory = System.IO.Path.GetDirectoryName(videoPath) ?? "";
+        string fileNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(videoPath);
+
+        // Common subtitle file patterns / Распространённые паттерны файлов субтитров
+        var patterns = new[]
+        {
+            $"{fileNameWithoutExt}.srt",
+            $"{fileNameWithoutExt}.en.srt",
+            $"{fileNameWithoutExt}.eng.srt",
+            $"{fileNameWithoutExt}.ru.srt",
+            $"{fileNameWithoutExt}.rus.srt",
+        };
+
+        bool primaryLoaded = false;
+        
+        foreach (var pattern in patterns)
+        {
+            string srtPath = System.IO.Path.Combine(directory, pattern);
+            if (System.IO.File.Exists(srtPath))
+            {
+                if (!primaryLoaded)
+                {
+                    LoadPrimarySubtitles(srtPath);
+                    primaryLoaded = true;
+                }
+                else
+                {
+                    LoadSecondarySubtitles(srtPath);
+                    break; // Only load first two found / Загрузить только первые два найденных
+                }
+            }
+        }
+    }
+
+    #region Subtitle Menu Handlers / Обработчики меню субтитров
+
+    private void MenuLoadPrimarySubs_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Subtitle files (*.srt)|*.srt|All files (*.*)|*.*",
+            Title = "Выберите файл субтитров 1"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            LoadPrimarySubtitles(dialog.FileName);
+        }
+    }
+
+    private void MenuLoadSecondarySubs_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Subtitle files (*.srt)|*.srt|All files (*.*)|*.*",
+            Title = "Выберите файл субтитров 2"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            LoadSecondarySubtitles(dialog.FileName);
+        }
+    }
+
+    private void MenuTogglePrimarySubs_Changed(object sender, RoutedEventArgs e)
+    {
+        _showPrimarySubtitles = MenuTogglePrimarySubs.IsChecked;
+        if (!_showPrimarySubtitles)
+        {
+            PrimarySubtitleBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void MenuToggleSecondarySubs_Changed(object sender, RoutedEventArgs e)
+    {
+        _showSecondarySubtitles = MenuToggleSecondarySubs.IsChecked;
+        if (!_showSecondarySubtitles)
+        {
+            SecondarySubtitleBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void MenuClearAllSubs_Click(object sender, RoutedEventArgs e)
+    {
+        ClearAllSubtitles();
+    }
+
+    /// <summary>
+    /// Updates the embedded subtitles menu with available tracks from VLC.
+    /// Обновляет меню встроенных субтитров доступными дорожками из VLC.
+    /// </summary>
+    private void UpdateEmbeddedSubtitlesMenu()
+    {
+        if (_mediaPlayer == null) return;
+
+        // Clear dynamic items (keep only "Отключить" and separator)
+        // Очистить динамические элементы (оставить только "Отключить" и разделитель)
+        while (MenuEmbeddedSubs.Items.Count > 2)
+        {
+            MenuEmbeddedSubs.Items.RemoveAt(MenuEmbeddedSubs.Items.Count - 1);
+        }
+
+        var spuDescriptions = _mediaPlayer.SpuDescription;
+        int spuCount = _mediaPlayer.SpuCount;
+        
+        System.Diagnostics.Debug.WriteLine($"Embedded subtitle tracks: {spuCount}");
+        
+        if (spuDescriptions == null || spuCount <= 1)
+        {
+            // No embedded subtitles (first track is usually "Disable")
+            // Нет встроенных субтитров (первый трек обычно "Отключить")
+            var noSubsItem = new System.Windows.Controls.MenuItem
+            {
+                Header = "(нет встроенных субтитров)",
+                IsEnabled = false
+            };
+            MenuEmbeddedSubs.Items.Add(noSubsItem);
+            return;
+        }
+
+        foreach (var spu in spuDescriptions)
+        {
+            // Skip the "Disable" track (id -1 or 0)
+            if (spu.Id <= 0) continue;
+            
+            string name = string.IsNullOrWhiteSpace(spu.Name) ? $"Track {spu.Id}" : spu.Name;
+            
+            var menuItem = new System.Windows.Controls.MenuItem
+            {
+                Header = name,
+                Tag = spu.Id,
+                IsCheckable = true,
+                IsChecked = _selectedEmbeddedSubtitleId == spu.Id
+            };
+            
+            menuItem.Click += EmbeddedSubtitleTrack_Click;
+            MenuEmbeddedSubs.Items.Add(menuItem);
+            
+            System.Diagnostics.Debug.WriteLine($"  Track {spu.Id}: {name}");
+        }
+        
+        // Update "Disable" checkbox state / Обновить состояние галочки "Отключить"
+        MenuEmbeddedSubsNone.IsChecked = _selectedEmbeddedSubtitleId == -1;
+    }
+
+    /// <summary>
+    /// Handles click on embedded subtitle track menu item.
+    /// Обрабатывает клик по элементу меню встроенной дорожки субтитров.
+    /// </summary>
+    private void EmbeddedSubtitleTrack_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.MenuItem menuItem || _mediaPlayer == null) return;
+        
+        int trackId = (int)menuItem.Tag;
+        
+        // Uncheck all other embedded subtitle items / Снять галочки с других элементов
+        foreach (var item in MenuEmbeddedSubs.Items)
+        {
+            if (item is System.Windows.Controls.MenuItem mi && mi.IsCheckable)
+            {
+                mi.IsChecked = false;
+            }
+        }
+        
+        menuItem.IsChecked = true;
+        MenuEmbeddedSubsNone.IsChecked = false;
+        _selectedEmbeddedSubtitleId = trackId;
+        
+        // Clear external subtitles when using embedded / Очистить внешние субтитры при использовании встроенных
+        ClearAllSubtitles();
+        
+        // Enable selected embedded subtitle track / Включить выбранную встроенную дорожку
+        _mediaPlayer.SetSpu(trackId);
+        
+        System.Diagnostics.Debug.WriteLine($"Selected embedded subtitle track: {trackId}");
+    }
+
+    /// <summary>
+    /// Handles click on "Disable" embedded subtitles menu item.
+    /// Обрабатывает клик на пункт "Отключить" встроенные субтитры.
+    /// </summary>
+    private void MenuEmbeddedSubsNone_Click(object sender, RoutedEventArgs e)
+    {
+        if (_mediaPlayer == null) return;
+        
+        // Uncheck all embedded subtitle items / Снять галочки со всех элементов встроенных субтитров
+        foreach (var item in MenuEmbeddedSubs.Items)
+        {
+            if (item is System.Windows.Controls.MenuItem mi && mi.IsCheckable && mi != MenuEmbeddedSubsNone)
+            {
+                mi.IsChecked = false;
+            }
+        }
+        
+        MenuEmbeddedSubsNone.IsChecked = true;
+        _selectedEmbeddedSubtitleId = -1;
+        
+        // Disable VLC subtitles / Отключить субтитры VLC
+        _mediaPlayer.SetSpu(-1);
+        
+        System.Diagnostics.Debug.WriteLine("Embedded subtitles disabled");
+    }
+
+    #endregion
 
     #endregion
 }

@@ -54,206 +54,151 @@
                 <MenuItem Header="☰" FontSize="16" Foreground="{StaticResource TextBrush}" 
                           Background="Transparent" BorderThickness="0" Padding="8,4">
                     <!-- File Menu / Меню Файл -->
-                    <MenuItem>
+                    <MenuItem Header="Файл">
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                         </MenuItem.Icon>
-                        <MenuItem.Header>
-                            <TextBlock Text="Файл"/>
-                        </MenuItem.Header>
-                        <MenuItem Click="MenuOpenFile_Click" InputGestureText="Ctrl+O">
+                        <MenuItem Header="Открыть файл..." Click="MenuOpenFile_Click" InputGestureText="Ctrl+O">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Открыть файл..."/>
-                            </MenuItem.Header>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Click="CloseButton_Click" InputGestureText="Alt+F4">
+                        <MenuItem Header="Выход" Click="CloseButton_Click" InputGestureText="Alt+F4">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Выход"/>
-                            </MenuItem.Header>
                         </MenuItem>
                     </MenuItem>
                     <!-- Playback Menu / Меню Воспроизведение -->
-                    <MenuItem>
+                    <MenuItem Header="Воспроизведение">
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                         </MenuItem.Icon>
-                        <MenuItem.Header>
-                            <TextBlock Text="Воспроизведение"/>
-                        </MenuItem.Header>
-                        <MenuItem x:Name="MenuPlayPause" Click="PlayPauseButton_Click" InputGestureText="Space">
+                        <MenuItem x:Name="MenuPlayPause" Header="Воспроизвести" Click="PlayPauseButton_Click" InputGestureText="Space">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Воспроизвести"/>
-                            </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Click="MenuStop_Click">
+                        <MenuItem Header="Стоп" Click="MenuStop_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE71A;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Стоп"/>
-                            </MenuItem.Header>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Click="RewindButton_Click" InputGestureText="←">
+                        <MenuItem Header="Назад (-10с)" Click="RewindButton_Click" InputGestureText="←">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEB9E;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Назад (-10с)"/>
-                            </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Click="ForwardButton_Click" InputGestureText="→">
+                        <MenuItem Header="Вперёд (+10с)" Click="ForwardButton_Click" InputGestureText="→">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEB9D;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Вперёд (+10с)"/>
-                            </MenuItem.Header>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Click="MenuVolumeUp_Click" InputGestureText="↑">
+                        <MenuItem Header="Громкость +" Click="MenuVolumeUp_Click" InputGestureText="↑">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE995;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Громкость +"/>
-                            </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Click="MenuVolumeDown_Click" InputGestureText="↓">
+                        <MenuItem Header="Громкость -" Click="MenuVolumeDown_Click" InputGestureText="↓">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE993;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Громкость -"/>
-                            </MenuItem.Header>
                         </MenuItem>
                         <Separator/>
                         <!-- Speed Submenu / Подменю скорости -->
-                        <MenuItem>
+                        <MenuItem Header="Скорость">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEC57;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Скорость"/>
-                            </MenuItem.Header>
-                            <MenuItem Click="SpeedUp_Click" InputGestureText="]">
-                                <MenuItem.Header>
-                                    <TextBlock Text="Увеличить скорость"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem Click="SpeedDown_Click" InputGestureText="[">
-                                <MenuItem.Header>
-                                    <TextBlock Text="Уменьшить скорость"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem Click="SpeedReset_Click" InputGestureText="Backspace">
-                                <MenuItem.Header>
-                                    <TextBlock Text="Сбросить (1.0x)"/>
-                                </MenuItem.Header>
-                            </MenuItem>
+                            <MenuItem Header="Увеличить скорость" Click="SpeedUp_Click" InputGestureText="]"/>
+                            <MenuItem Header="Уменьшить скорость" Click="SpeedDown_Click" InputGestureText="["/>
+                            <MenuItem Header="Сбросить (1.0x)" Click="SpeedReset_Click" InputGestureText="Backspace"/>
                             <Separator/>
-                            <MenuItem x:Name="Speed025" Click="SpeedPreset_Click" Tag="0.25">
-                                <MenuItem.Header>
-                                    <TextBlock Text="0.25x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed050" Click="SpeedPreset_Click" Tag="0.5">
-                                <MenuItem.Header>
-                                    <TextBlock Text="0.5x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed075" Click="SpeedPreset_Click" Tag="0.75">
-                                <MenuItem.Header>
-                                    <TextBlock Text="0.75x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed100" Click="SpeedPreset_Click" Tag="1.0">
-                                <MenuItem.Header>
-                                    <TextBlock Text="1.0x (норм.)"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed125" Click="SpeedPreset_Click" Tag="1.25">
-                                <MenuItem.Header>
-                                    <TextBlock Text="1.25x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed150" Click="SpeedPreset_Click" Tag="1.5">
-                                <MenuItem.Header>
-                                    <TextBlock Text="1.5x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed175" Click="SpeedPreset_Click" Tag="1.75">
-                                <MenuItem.Header>
-                                    <TextBlock Text="1.75x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem x:Name="Speed200" Click="SpeedPreset_Click" Tag="2.0">
-                                <MenuItem.Header>
-                                    <TextBlock Text="2.0x"/>
-                                </MenuItem.Header>
-                            </MenuItem>
+                            <MenuItem x:Name="Speed025" Header="0.25x" Click="SpeedPreset_Click" Tag="0.25"/>
+                            <MenuItem x:Name="Speed050" Header="0.5x" Click="SpeedPreset_Click" Tag="0.5"/>
+                            <MenuItem x:Name="Speed075" Header="0.75x" Click="SpeedPreset_Click" Tag="0.75"/>
+                            <MenuItem x:Name="Speed100" Header="1.0x (норм.)" Click="SpeedPreset_Click" Tag="1.0"/>
+                            <MenuItem x:Name="Speed125" Header="1.25x" Click="SpeedPreset_Click" Tag="1.25"/>
+                            <MenuItem x:Name="Speed150" Header="1.5x" Click="SpeedPreset_Click" Tag="1.5"/>
+                            <MenuItem x:Name="Speed175" Header="1.75x" Click="SpeedPreset_Click" Tag="1.75"/>
+                            <MenuItem x:Name="Speed200" Header="2.0x" Click="SpeedPreset_Click" Tag="2.0"/>
                         </MenuItem>
                     </MenuItem>
                     <!-- View Menu / Меню Вид -->
-                    <MenuItem>
+                    <MenuItem Header="Вид">
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                         </MenuItem.Icon>
-                        <MenuItem.Header>
-                            <TextBlock Text="Вид"/>
-                        </MenuItem.Header>
-                        <MenuItem x:Name="MenuFullscreen" Click="FullscreenButton_Click" InputGestureText="F11">
+                        <MenuItem x:Name="MenuFullscreen" Header="На полный экран" Click="FullscreenButton_Click" InputGestureText="F11">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="На полный экран"/>
-                            </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem x:Name="MenuCompactMode" Click="CompactModeButton_Click" InputGestureText="P">
+                        <MenuItem x:Name="MenuCompactMode" Header="Компактный режим" Click="CompactModeButton_Click" InputGestureText="P">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEE47;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Компактный режим"/>
-                            </MenuItem.Header>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="MenuAlwaysOnTop" IsCheckable="True" 
+                        <MenuItem x:Name="MenuAlwaysOnTop" Header="Поверх всех окон" IsCheckable="True" 
                                   Checked="MenuAlwaysOnTop_Checked" Unchecked="MenuAlwaysOnTop_Unchecked">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE718;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="Поверх всех окон"/>
-                            </MenuItem.Header>
+                        </MenuItem>
+                    </MenuItem>
+                    <!-- Subtitles Menu / Меню Субтитры -->
+                    <MenuItem Header="Субтитры">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                        </MenuItem.Icon>
+                        <!-- Embedded subtitles submenu / Подменю встроенных субтитров -->
+                        <MenuItem x:Name="MenuEmbeddedSubs" Header="Встроенные субтитры">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE8A4;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                            </MenuItem.Icon>
+                            <MenuItem x:Name="MenuEmbeddedSubsNone" Header="Отключить" IsCheckable="True" 
+                                      Click="MenuEmbeddedSubsNone_Click"/>
+                            <Separator/>
+                            <!-- Dynamic items added in code / Динамические элементы добавляются в коде -->
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="MenuLoadPrimarySubs" Header="Загрузить субтитры 1..." 
+                                  Click="MenuLoadPrimarySubs_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="1️⃣" FontSize="12"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MenuLoadSecondarySubs" Header="Загрузить субтитры 2..." 
+                                  Click="MenuLoadSecondarySubs_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="2️⃣" FontSize="12"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="MenuTogglePrimarySubs" Header="Субтитры 1: (нет)" IsCheckable="True" IsChecked="True"
+                                  Checked="MenuTogglePrimarySubs_Changed" Unchecked="MenuTogglePrimarySubs_Changed"/>
+                        <MenuItem x:Name="MenuToggleSecondarySubs" Header="Субтитры 2: (нет)" IsCheckable="True" IsChecked="True"
+                                  Checked="MenuToggleSecondarySubs_Changed" Unchecked="MenuToggleSecondarySubs_Changed"/>
+                        <Separator/>
+                        <MenuItem Header="Очистить внешние субтитры" Click="MenuClearAllSubs_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                            </MenuItem.Icon>
                         </MenuItem>
                     </MenuItem>
                     <!-- Help Menu / Меню Справка -->
-                    <MenuItem>
+                    <MenuItem Header="Справка">
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                         </MenuItem.Icon>
-                        <MenuItem.Header>
-                            <TextBlock Text="Справка"/>
-                        </MenuItem.Header>
-                        <MenuItem Click="MenuAbout_Click">
+                        <MenuItem Header="О программе..." Click="MenuAbout_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem.Header>
-                                <TextBlock Text="О программе..."/>
-                            </MenuItem.Header>
                         </MenuItem>
                     </MenuItem>
                 </MenuItem>
@@ -342,6 +287,53 @@
                                 Cursor="Hand"
                                 Click="OpenFileButton_Click"/>
                     </StackPanel>
+                    
+                    <!-- Subtitle Overlay / Слой субтитров -->
+                    <Grid x:Name="SubtitleOverlay" 
+                          VerticalAlignment="Bottom" 
+                          Margin="20,0,20,60"
+                          IsHitTestVisible="False">
+                        <Grid.RowDefinitions>
+                            <!-- Primary subtitles (foreign language) / Основные субтитры (иностранный язык) -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Secondary subtitles (translation) / Вторые субтитры (перевод) -->
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Primary Subtitle Text / Текст основных субтитров -->
+                        <Border Grid.Row="0" 
+                                x:Name="PrimarySubtitleBorder"
+                                Background="#CC000000" 
+                                CornerRadius="4" 
+                                Padding="12,6"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,5"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="PrimarySubtitleText"
+                                       Foreground="White"
+                                       FontSize="22"
+                                       FontWeight="Medium"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="900"/>
+                        </Border>
+                        
+                        <!-- Secondary Subtitle Text / Текст вторых субтитров -->
+                        <Border Grid.Row="1" 
+                                x:Name="SecondarySubtitleBorder"
+                                Background="#AA000000" 
+                                CornerRadius="4" 
+                                Padding="10,4"
+                                HorizontalAlignment="Center"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="SecondarySubtitleText"
+                                       Foreground="#FFD0D0D0"
+                                       FontSize="18"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="900"/>
+                        </Border>
+                    </Grid>
                 </Grid>
             </vlc:VideoView>
         </Grid>
