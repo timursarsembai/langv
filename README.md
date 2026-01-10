@@ -112,6 +112,15 @@ Found a bug or have an idea? Create an [Issue](https://github.com/timursarsembai
 
 ---
 
+## ❤️ Support the Project
+
+If you enjoy this app, consider supporting its development:
+
+[![DonationAlerts](https://img.shields.io/badge/DonationAlerts-Donate-blue?style=for-the-badge)](https://www.donationalerts.com/r/timursarsembai)
+[![Liberapay](https://img.shields.io/badge/Liberapay-Donate-yellow?style=for-the-badge)](https://liberapay.com/timursarsembai/donate)
+
+---
+
 ## 📄 License
 
 MIT License — free to use!
