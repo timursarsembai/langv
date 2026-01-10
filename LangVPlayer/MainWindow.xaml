@@ -14,6 +14,7 @@
         Background="{StaticResource PrimaryBackgroundBrush}"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
+        SizeChanged="Window_SizeChanged"
         PreviewKeyDown="Window_PreviewKeyDown"
         PreviewMouseDown="Window_PreviewMouseDown">
     
@@ -155,27 +156,37 @@
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                         </MenuItem.Icon>
-                        <!-- Embedded subtitles submenu / Подменю встроенных субтитров -->
-                        <MenuItem x:Name="MenuEmbeddedSubs" Header="Встроенные субтитры">
+                        <!-- Embedded subtitles 1 submenu / Подменю встроенных субтитров 1 -->
+                        <MenuItem x:Name="MenuEmbeddedSubs1" Header="Встроенные (слот 1)">
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xE8A4;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                                <TextBlock Text="1️⃣" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem x:Name="MenuEmbeddedSubsNone" Header="Отключить" IsCheckable="True" 
-                                      Click="MenuEmbeddedSubsNone_Click"/>
+                            <MenuItem x:Name="MenuEmbeddedSubs1None" Header="Отключить" IsCheckable="True" IsChecked="True"
+                                      Click="MenuEmbeddedSubs1None_Click"/>
+                            <Separator/>
+                            <!-- Dynamic items added in code / Динамические элементы добавляются в коде -->
+                        </MenuItem>
+                        <!-- Embedded subtitles 2 submenu / Подменю встроенных субтитров 2 -->
+                        <MenuItem x:Name="MenuEmbeddedSubs2" Header="Встроенные (слот 2)">
+                            <MenuItem.Icon>
+                                <TextBlock Text="2️⃣" FontSize="12"/>
+                            </MenuItem.Icon>
+                            <MenuItem x:Name="MenuEmbeddedSubs2None" Header="Отключить" IsCheckable="True" IsChecked="True"
+                                      Click="MenuEmbeddedSubs2None_Click"/>
                             <Separator/>
                             <!-- Dynamic items added in code / Динамические элементы добавляются в коде -->
                         </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="MenuLoadPrimarySubs" Header="Загрузить субтитры 1..." 
+                        <MenuItem x:Name="MenuLoadPrimarySubs" Header="Загрузить внешние субтитры 1..." 
                                   Click="MenuLoadPrimarySubs_Click">
                             <MenuItem.Icon>
-                                <TextBlock Text="1️⃣" FontSize="12"/>
+                                <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem x:Name="MenuLoadSecondarySubs" Header="Загрузить субтитры 2..." 
+                        <MenuItem x:Name="MenuLoadSecondarySubs" Header="Загрузить внешние субтитры 2..." 
                                   Click="MenuLoadSecondarySubs_Click">
                             <MenuItem.Icon>
-                                <TextBlock Text="2️⃣" FontSize="12"/>
+                                <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
@@ -184,7 +195,7 @@
                         <MenuItem x:Name="MenuToggleSecondarySubs" Header="Субтитры 2: (нет)" IsCheckable="True" IsChecked="True"
                                   Checked="MenuToggleSecondarySubs_Changed" Unchecked="MenuToggleSecondarySubs_Changed"/>
                         <Separator/>
-                        <MenuItem Header="Очистить внешние субтитры" Click="MenuClearAllSubs_Click">
+                        <MenuItem Header="Очистить все субтитры" Click="MenuClearAllSubs_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
@@ -308,14 +319,14 @@
                                 Padding="12,6"
                                 HorizontalAlignment="Center"
                                 Margin="0,0,0,5"
-                                Visibility="Collapsed">
+                                Visibility="Collapsed"
+                                MaxHeight="150">
                             <TextBlock x:Name="PrimarySubtitleText"
                                        Foreground="White"
                                        FontSize="22"
                                        FontWeight="Medium"
                                        TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       MaxWidth="900"/>
+                                       TextWrapping="Wrap"/>
                         </Border>
                         
                         <!-- Secondary Subtitle Text / Текст вторых субтитров -->
@@ -325,13 +336,13 @@
                                 CornerRadius="4" 
                                 Padding="10,4"
                                 HorizontalAlignment="Center"
-                                Visibility="Collapsed">
+                                Visibility="Collapsed"
+                                MaxHeight="100">
                             <TextBlock x:Name="SecondarySubtitleText"
                                        Foreground="#FFD0D0D0"
                                        FontSize="18"
                                        TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       MaxWidth="900"/>
+                                       TextWrapping="Wrap"/>
                         </Border>
                     </Grid>
                 </Grid>
