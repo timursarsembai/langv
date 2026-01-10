@@ -83,6 +83,9 @@ namespace LangVPlayer.Services
         // Last opened file / Последний открытый файл
         public string? LastVideoPath { get; set; }
 
+        // Language / Язык интерфейса ("en", "ru" or "auto")
+        public string Language { get; set; } = "auto";
+
         // OpenAI API Key / Ключ API OpenAI
         public string? OpenAiApiKey { get; set; }
     }

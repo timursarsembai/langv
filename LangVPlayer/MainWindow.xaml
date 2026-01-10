@@ -11,7 +11,7 @@
         MinHeight="400" MinWidth="600"
         WindowStyle="None"
         AllowsTransparency="True"
-        Icon="video.ico"
+        Icon="langvplayer.ico"
         Background="{StaticResource PrimaryBackgroundBrush}"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
@@ -22,6 +22,55 @@
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="5"/>
     </WindowChrome.WindowChrome>
+    
+    <Window.Resources>
+        <!-- Style for menu button / Стиль для кнопки меню -->
+        <Style x:Key="MenuButtonStyle" TargetType="MenuItem">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Grid>
+                            <Border x:Name="Border" 
+                                    Background="Transparent" 
+                                    BorderThickness="0"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter ContentSource="Header" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                            </Border>
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Bottom"
+                                   PlacementTarget="{Binding ElementName=Border}"
+                                   PopupAnimation="Fade">
+                                <Border Background="#FF2D2D30" 
+                                        BorderBrush="#FF3F3F46" 
+                                        BorderThickness="1"
+                                        Margin="0,0,8,8">
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="2" Opacity="0.5" BlurRadius="5"/>
+                                    </Border.Effect>
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#40FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#40FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     
     <Grid>
         <Grid.ColumnDefinitions>
@@ -51,73 +100,81 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Menu Button / Кнопка меню -->
-            <Menu Grid.Column="0" Background="Transparent" VerticalAlignment="Center" Margin="5,0,0,0">
-                <MenuItem Header="☰" FontSize="16" Foreground="{StaticResource TextBrush}" 
-                          Background="Transparent" BorderThickness="0" Padding="8,4">
-                    <!-- File Menu / Меню Файл -->
-                    <MenuItem Header="Файл">
+            <!-- Menu / Меню -->
+            <Menu Grid.Column="0" 
+                  Background="Transparent" 
+                  Foreground="{StaticResource TextBrush}" 
+                  VerticalAlignment="Center"
+                  Margin="5,0,0,0"
+                  FontSize="14">
+                <MenuItem x:Name="MenuButton" 
+                          Header="☰" 
+                          FontSize="18" 
+                          FontWeight="Bold"
+                          Style="{StaticResource MenuButtonStyle}">
+                        <!-- File Menu / Меню Файл -->
+                        <MenuItem x:Name="MenuFile" Header="Файл">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
-                        <MenuItem Header="Открыть файл..." Click="MenuOpenFile_Click" InputGestureText="Ctrl+O">
+                        <MenuItem x:Name="MenuOpenFile" Header="Открыть файл..." Click="MenuOpenFile_Click" InputGestureText="Ctrl+O">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Header="Выход" Click="CloseButton_Click" InputGestureText="Alt+F4">
+                        <MenuItem x:Name="MenuExit" Header="Выход" Click="CloseButton_Click" InputGestureText="Alt+F4">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </MenuItem>
                     <!-- Playback Menu / Меню Воспроизведение -->
-                    <MenuItem Header="Воспроизведение">
+                    <MenuItem x:Name="MenuPlayback" Header="Воспроизведение">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
                         <MenuItem x:Name="MenuPlayPause" Header="Воспроизвести" Click="PlayPauseButton_Click" InputGestureText="Space">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Стоп" Click="MenuStop_Click">
+                        <MenuItem x:Name="MenuStop" Header="Стоп" Click="MenuStop_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE71A;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Header="Назад (-10с)" Click="RewindButton_Click" InputGestureText="←">
+                        <MenuItem x:Name="MenuRewind" Header="Назад (-10с)" Click="RewindButton_Click" InputGestureText="←">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEB9E;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Вперёд (+10с)" Click="ForwardButton_Click" InputGestureText="→">
+                        <MenuItem x:Name="MenuForward" Header="Вперёд (+10с)" Click="ForwardButton_Click" InputGestureText="→">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEB9D;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Header="Громкость +" Click="MenuVolumeUp_Click" InputGestureText="↑">
+                        <MenuItem x:Name="MenuVolumeUp" Header="Громкость +" Click="MenuVolumeUp_Click" InputGestureText="↑">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE995;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Громкость -" Click="MenuVolumeDown_Click" InputGestureText="↓">
+                        <MenuItem x:Name="MenuVolumeDown" Header="Громкость -" Click="MenuVolumeDown_Click" InputGestureText="↓">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE993;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
                         <!-- Speed Submenu / Подменю скорости -->
-                        <MenuItem Header="Скорость">
+                        <MenuItem x:Name="MenuSpeed" Header="Скорость">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xEC57;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
-                            <MenuItem Header="Увеличить скорость" Click="SpeedUp_Click" InputGestureText="]"/>
-                            <MenuItem Header="Уменьшить скорость" Click="SpeedDown_Click" InputGestureText="["/>
-                            <MenuItem Header="Сбросить (1.0x)" Click="SpeedReset_Click" InputGestureText="Backspace"/>
+                            <MenuItem x:Name="MenuSpeedUp" Header="Увеличить скорость" Click="SpeedUp_Click" InputGestureText="]"/>
+                            <MenuItem x:Name="MenuSpeedDown" Header="Уменьшить скорость" Click="SpeedDown_Click" InputGestureText="["/>
+                            <MenuItem x:Name="MenuSpeedReset" Header="Сбросить (1.0x)" Click="SpeedReset_Click" InputGestureText="Backspace"/>
                             <Separator/>
                             <MenuItem x:Name="Speed025" Header="0.25x" Click="SpeedPreset_Click" Tag="0.25"/>
                             <MenuItem x:Name="Speed050" Header="0.5x" Click="SpeedPreset_Click" Tag="0.5"/>
@@ -130,9 +187,9 @@
                         </MenuItem>
                     </MenuItem>
                     <!-- Audio Menu / Меню Аудио -->
-                    <MenuItem Header="Аудио">
+                    <MenuItem x:Name="MenuAudio" Header="Аудио">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE767;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xE767;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
                         <!-- Audio Tracks submenu / Подменю аудиодорожек -->
                         <MenuItem x:Name="MenuAudioTracks" Header="Аудиодорожка">
@@ -142,12 +199,12 @@
                             <!-- Dynamic items added in code / Динамические элементы добавляются в коде -->
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Header="Увеличить громкость" Click="MenuVolumeUp_Click" InputGestureText="↑">
+                        <MenuItem x:Name="MenuVolumeUpAudio" Header="Увеличить громкость" Click="MenuVolumeUp_Click" InputGestureText="↑">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE995;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Уменьшить громкость" Click="MenuVolumeDown_Click" InputGestureText="↓">
+                        <MenuItem x:Name="MenuVolumeDownAudio" Header="Уменьшить громкость" Click="MenuVolumeDown_Click" InputGestureText="↓">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE993;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
@@ -159,9 +216,9 @@
                         </MenuItem>
                     </MenuItem>
                     <!-- View Menu / Меню Вид -->
-                    <MenuItem Header="Вид">
+                    <MenuItem x:Name="MenuView" Header="Вид">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
                         <MenuItem x:Name="MenuFullscreen" Header="На полный экран" Click="FullscreenButton_Click" InputGestureText="F11">
                             <MenuItem.Icon>
@@ -182,9 +239,9 @@
                         </MenuItem>
                     </MenuItem>
                     <!-- Subtitles Menu / Меню Субтитры -->
-                    <MenuItem Header="Субтитры">
+                    <MenuItem x:Name="MenuSubtitles" Header="Субтитры">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
                         <!-- Embedded subtitles 1 submenu / Подменю встроенных субтитров 1 -->
                         <MenuItem x:Name="MenuEmbeddedSubs1" Header="Встроенные (слот 1)">
@@ -225,18 +282,26 @@
                         <MenuItem x:Name="MenuToggleSecondarySubs" Header="Субтитры 2: (нет)" IsCheckable="True" IsChecked="True"
                                   Checked="MenuToggleSecondarySubs_Changed" Unchecked="MenuToggleSecondarySubs_Changed"/>
                         <Separator/>
-                        <MenuItem Header="Очистить все субтитры" Click="MenuClearAllSubs_Click">
+                        <MenuItem x:Name="MenuClearAllSubs" Header="Очистить все субтитры" Click="MenuClearAllSubs_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </MenuItem>
-                    <!-- Help Menu / Меню Справка -->
-                    <MenuItem Header="Справка">
+                    <!-- Language Menu / Меню Язык -->
+                    <MenuItem x:Name="MenuLanguage" Header="Язык">
                         <MenuItem.Icon>
-                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="&#xF2B7;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
                         </MenuItem.Icon>
-                        <MenuItem Header="О программе..." Click="MenuAbout_Click">
+                        <MenuItem x:Name="MenuLanguageEnglish" Header="English" Click="MenuLanguage_Click" Tag="en" IsCheckable="True"/>
+                        <MenuItem x:Name="MenuLanguageRussian" Header="Русский" Click="MenuLanguage_Click" Tag="ru" IsCheckable="True"/>
+                    </MenuItem>
+                    <!-- Help Menu / Меню Справка -->
+                    <MenuItem x:Name="MenuHelp" Header="Справка">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
+                        </MenuItem.Icon>
+                        <MenuItem x:Name="MenuAbout" Header="О программе..." Click="MenuAbout_Click">
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
                             </MenuItem.Icon>
@@ -247,7 +312,7 @@
 
             <!-- App Title / Название приложения -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
-                <Image Source="video.png" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Image Source="langvplayer.png" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                 <TextBlock Text="LangV Player" Foreground="{StaticResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
             </StackPanel>
 
@@ -257,7 +322,7 @@
                 <ToggleButton x:Name="PinButton" 
                               Style="{StaticResource PinButtonStyle}" 
                               Content="&#xE718;"
-                              ToolTip="Always on Top / Всегда поверх"
+                              ToolTip="Always on Top"
                               Focusable="False"
                               Checked="PinButton_Checked"
                               Unchecked="PinButton_Unchecked"/>
@@ -267,7 +332,7 @@
                         Content="&#xE921;" 
                         Focusable="False"
                         Click="MinimizeButton_Click"
-                        ToolTip="Minimize / Свернуть"/>
+                        ToolTip="Minimize"/>
                 
                 <!-- Maximize Button / Кнопка развертывания -->
                 <Button x:Name="MaximizeButton"
@@ -275,14 +340,14 @@
                         Content="&#xE922;" 
                         Focusable="False"
                         Click="MaximizeButton_Click"
-                        ToolTip="Maximize / Развернуть"/>
+                        ToolTip="Maximize"/>
                 
                 <!-- Close Button / Кнопка закрытия -->
                 <Button Style="{StaticResource CloseButtonStyle}" 
                         Content="&#xE8BB;" 
                         Focusable="False"
                         Click="CloseButton_Click"
-                        ToolTip="Close / Закрыть"/>
+                        ToolTip="Close"/>
             </StackPanel>
         </Grid>
 
@@ -306,18 +371,14 @@
                                 HorizontalAlignment="Center"
                                 Visibility="Visible">
                         <TextBlock Text="🎬" FontSize="64" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <TextBlock Text="Drop video file here or click to open" 
+                        <TextBlock x:Name="PlaceholderText"
+                                   Text="Drop video file here or click to open" 
                                    Foreground="{StaticResource TextSecondaryBrush}" 
                                    FontSize="16" 
                                    HorizontalAlignment="Center"
                                    Margin="0,10,0,0"/>
-                        <TextBlock Text="Перетащите видеофайл сюда или нажмите для открытия" 
-                                   Foreground="{StaticResource TextSecondaryBrush}" 
-                                   FontSize="12" 
-                                   HorizontalAlignment="Center"
-                                   Margin="0,5,0,0"/>
                         <Button x:Name="OpenFileButton" 
-                                Content="📁 Open Video / Открыть видео" 
+                                Content="📁 Open Video" 
                                 Margin="0,20,0,0"
                                 Padding="20,10"
                                 Background="{StaticResource AccentBrush}"
@@ -456,7 +517,7 @@
                             Focusable="False"
                             VerticalAlignment="Center"
                             Click="RewindButton_Click"
-                            ToolTip="Rewind 10s / Назад 10с"/>
+                            ToolTip="Rewind 10s"/>
                     
                     <!-- Play/Pause / Воспроизведение/Пауза -->
                     <Button x:Name="PlayPauseButton" 
@@ -466,7 +527,7 @@
                             Focusable="False"
                             VerticalAlignment="Center"
                             Click="PlayPauseButton_Click"
-                            ToolTip="Play/Pause / Воспроизведение/Пауза"/>
+                            ToolTip="Play/Pause"/>
                     
                     <!-- Forward / Перемотка вперед -->
                     <Button Style="{StaticResource ControlButtonStyle}" 
@@ -475,7 +536,7 @@
                             Width="40" Height="40"
                             VerticalAlignment="Center"
                             Click="ForwardButton_Click"
-                            ToolTip="Forward 10s / Вперед 10с"/>
+                            ToolTip="Forward 10s"/>
                 </StackPanel>
 
                 <!-- Time Display on left / Отображение времени слева -->
@@ -513,7 +574,7 @@
                                     Cursor="Hand"
                                     Focusable="False"
                                     Click="SpeedDown_Click"
-                                    ToolTip="Slower / Медленнее (Shift+[)"/>
+                                    ToolTip="Slower (Shift+[)"/>
                             <TextBlock x:Name="SpeedText"
                                        Text="1.0x"
                                        Foreground="{StaticResource TextBrush}"
@@ -524,7 +585,7 @@
                                        VerticalAlignment="Center"
                                        Cursor="Hand"
                                        MouseLeftButtonDown="SpeedText_MouseLeftButtonDown"
-                                       ToolTip="Reset speed / Сбросить скорость"/>
+                                       ToolTip="Reset speed"/>
                             <Button x:Name="SpeedUpButton"
                                     Content="&#xE970;"
                                     FontFamily="Segoe MDL2 Assets"
@@ -536,7 +597,7 @@
                                     Cursor="Hand"
                                     Focusable="False"
                                     Click="SpeedUp_Click"
-                                    ToolTip="Faster / Быстрее (Shift+])"/>
+                                    ToolTip="Faster (Shift+])"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -553,7 +614,7 @@
                                Margin="0,0,5,0"
                                Cursor="Hand"
                                MouseLeftButtonDown="VolumeIcon_MouseLeftButtonDown"
-                               ToolTip="Mute / Отключить звук"/>
+                               ToolTip="Mute"/>
                     
                     <!-- Volume Slider / Ползунок громкости -->
                     <Slider x:Name="VolumeSlider" 
@@ -584,7 +645,7 @@
                             Margin="5,0,0,0"
                             Focusable="False"
                             Click="PlaylistButton_Click"
-                            ToolTip="Playlist / Плейлист"/>
+                            ToolTip="Playlist"/>
                     
                     <!-- Compact/PiP Mode Button / Кнопка компактного режима -->
                     <Button x:Name="CompactModeButton"
@@ -594,7 +655,7 @@
                             Margin="5,0,0,0"
                             Focusable="False"
                             Click="CompactModeButton_Click"
-                            ToolTip="Компактный режим (P)"/>
+                            ToolTip="Compact Mode (P)"/>
                     
                     <!-- Fullscreen Button / Кнопка полного экрана -->
                     <Button x:Name="FullscreenButton"
@@ -604,7 +665,7 @@
                             Margin="5,0,0,0"
                             Focusable="False"
                             Click="FullscreenButton_Click"
-                            ToolTip="Fullscreen / Полный экран"/>
+                            ToolTip="Fullscreen"/>
                 </StackPanel>
             </Grid>
         </Grid>
@@ -632,14 +693,14 @@
                             Content="&#xE710;"
                             Focusable="False"
                             Click="PlaylistAddFiles_Click"
-                            ToolTip="Add files / Добавить файлы"/>
+                            ToolTip="Add files"/>
                     
                     <!-- Clear Playlist Button / Кнопка очистки плейлиста -->
                     <Button Style="{StaticResource TitleBarButtonStyle}"
                             Content="&#xE74D;"
                             Focusable="False"
                             Click="PlaylistClear_Click"
-                            ToolTip="Clear playlist / Очистить плейлист"/>
+                            ToolTip="Clear playlist"/>
                 </StackPanel>
             </Grid>
             

@@ -9,6 +9,7 @@ using LibVLCSharp.Shared;
 using LangVPlayer.Services;
 using LangVPlayer.Helpers;
 using LangVPlayer.Models;
+using LangVPlayer.Resources;
 
 namespace LangVPlayer;
 
@@ -93,6 +94,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         
+        // Apply localized strings / Применить локализованные строки
+        ApplyLocalizedStrings();
+        
         // Load settings / Загрузка настроек
         _settings = SettingsService.Load();
         
@@ -153,6 +157,73 @@ public partial class MainWindow : Window
         };
     }
 
+    /// <summary>
+    /// Apply localized strings to UI elements / Применить локализованные строки к элементам UI
+    /// </summary>
+    private void ApplyLocalizedStrings()
+    {
+        // Menu items / Пункты меню
+        MenuFile.Header = Strings.File;
+        MenuOpenFile.Header = Strings.OpenFile;
+        MenuExit.Header = Strings.Exit;
+        
+        MenuPlayback.Header = Strings.Playback;
+        MenuPlayPause.Header = Strings.Play;
+        MenuStop.Header = Strings.Stop;
+        MenuRewind.Header = Strings.Rewind;
+        MenuForward.Header = Strings.Forward;
+        MenuVolumeUp.Header = Strings.VolumeUp;
+        MenuVolumeDown.Header = Strings.VolumeDown;
+        
+        MenuSpeed.Header = Strings.Speed;
+        MenuSpeedUp.Header = Strings.SpeedUp;
+        MenuSpeedDown.Header = Strings.SpeedDown;
+        MenuSpeedReset.Header = Strings.SpeedReset;
+        
+        MenuAudio.Header = Strings.Audio;
+        MenuAudioTracks.Header = Strings.AudioTrack;
+        MenuVolumeUpAudio.Header = Strings.VolumeUp;
+        MenuVolumeDownAudio.Header = Strings.VolumeDown;
+        MenuMute.Header = Strings.Mute;
+        
+        MenuView.Header = Strings.View;
+        MenuFullscreen.Header = Strings.Fullscreen;
+        MenuCompactMode.Header = Strings.CompactMode;
+        MenuAlwaysOnTop.Header = Strings.AlwaysOnTop;
+        
+        MenuSubtitles.Header = Strings.Subtitles;
+        MenuEmbeddedSubs1.Header = Strings.EmbeddedSubs1;
+        MenuEmbeddedSubs2.Header = Strings.EmbeddedSubs2;
+        MenuEmbeddedSubs1None.Header = Strings.Disable;
+        MenuEmbeddedSubs2None.Header = Strings.Disable;
+        MenuLoadPrimarySubs.Header = Strings.LoadExternalSubs1;
+        MenuLoadSecondarySubs.Header = Strings.LoadExternalSubs2;
+        MenuTogglePrimarySubs.Header = Strings.Subs1None;
+        MenuToggleSecondarySubs.Header = Strings.Subs2None;
+        MenuClearAllSubs.Header = Strings.ClearAllSubs;
+        
+        MenuLanguage.Header = Strings.Language;
+        MenuLanguageEnglish.Header = Strings.English;
+        MenuLanguageRussian.Header = Strings.Russian;
+        
+        MenuHelp.Header = Strings.Help;
+        MenuAbout.Header = Strings.About;
+        
+        // Placeholder and buttons / Заглушка и кнопки
+        PlaceholderText.Text = Strings.DropVideo;
+        OpenFileButton.Content = Strings.OpenVideo;
+        
+        // Tooltips / Подсказки
+        PinButton.ToolTip = Strings.AlwaysOnTopTooltip;
+        // Note: MinimizeButton, MaximizeButton, CloseButton don't have x:Name, so we can't set them here
+        
+        PlayPauseButton.ToolTip = Strings.PlayPauseTooltip;
+        VolumeIcon.ToolTip = Strings.MuteTooltip;
+        PlaylistButton.ToolTip = Strings.PlaylistTooltip;
+        CompactModeButton.ToolTip = Strings.CompactModeTooltip;
+        FullscreenButton.ToolTip = Strings.FullscreenTooltip;
+    }
+
     #endregion
 
     #region Window Events / События окна
@@ -165,6 +236,13 @@ public partial class MainWindow : Window
         // Subscribe to Activated event to ensure hotkeys work / 
         // Подписаться на событие Activated для работы горячих клавиш
         this.Activated += Window_Activated;
+        
+        // Initialize language menu checkmarks / Инициализация галочек меню языка
+        var currentLang = _settings.Language == "auto" 
+            ? System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName 
+            : _settings.Language;
+        MenuLanguageEnglish.IsChecked = (currentLang == "en");
+        MenuLanguageRussian.IsChecked = (currentLang == "ru");
         
         // Note: AlwaysOnTop is applied in SourceInitialized event (constructor) where hwnd is guaranteed
         // Примечание: AlwaysOnTop применяется в событии SourceInitialized (конструктор) где hwnd гарантирован
@@ -573,6 +651,27 @@ public partial class MainWindow : Window
             MessageBoxImage.Information);
     }
 
+    private void MenuLanguage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.MenuItem menuItem || menuItem.Tag is not string lang)
+            return;
+
+        // Update settings / Обновить настройки
+        _settings.Language = lang;
+        SettingsService.Save(_settings);
+
+        // Update menu checkmarks / Обновить галочки меню
+        MenuLanguageEnglish.IsChecked = (lang == "en");
+        MenuLanguageRussian.IsChecked = (lang == "ru");
+
+        // Show restart message / Показать сообщение о перезапуске
+        System.Windows.MessageBox.Show(
+            Strings.RestartToApplyLanguage,
+            Strings.RestartRequired,
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+
     #endregion
 
     #region Video Controls / Управление видео
@@ -763,8 +862,8 @@ public partial class MainWindow : Window
     /// </summary>
     private void TimelineMouseTracker_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        // Skip if dragging thumb or no video / Пропустить если перетаскиваем бегунок или нет видео
-        if (_isDraggingThumb || _mediaPlayer == null || _mediaPlayer.Length <= 0)
+        // Skip if no video / Пропустить если нет видео
+        if (_mediaPlayer == null || _mediaPlayer.Length <= 0)
         {
             return;
         }
@@ -774,6 +873,14 @@ public partial class MainWindow : Window
         var ratio = point.X / TimelineSlider.ActualWidth;
         ratio = Math.Max(0.0, Math.Min(1.0, ratio));
         var timeMs = (long)(ratio * _mediaPlayer.Length);
+        
+        // If dragging thumb, update slider position / Если перетаскиваем бегунок, обновить позицию слайдера
+        if (_isDraggingThumb)
+        {
+            TimelineSlider.Value = timeMs;
+            CurrentTimeText.Text = FormatTime(TimeSpan.FromMilliseconds(timeMs));
+            return;
+        }
         
         // Update popup position (center popup on mouse X position)
         // Обновить позицию popup (центрировать popup по позиции X мыши)
@@ -957,7 +1064,7 @@ public partial class MainWindow : Window
             string vlcPath = @"C:\Program Files\VideoLAN\VLC";
             
             // Initialize LibVLC with system VLC path / Инициализация LibVLC с путем к системному VLC
-            Core.Initialize(vlcPath);
+            LibVLCSharp.Shared.Core.Initialize(vlcPath);
             
             // Create LibVLC using system VLC (full codec support including AC3) /
             // Создание LibVLC с использованием системного VLC (полная поддержка кодеков включая AC3)

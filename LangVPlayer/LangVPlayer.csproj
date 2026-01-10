@@ -7,7 +7,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <Description>LangV Player - Video player for language learning</Description>
   </PropertyGroup>
+
+  <!-- Exclude Core project files from compilation (they're compiled as a separate project) -->
+  <ItemGroup>
+    <Compile Remove="LangVPlayer.Core\**" />
+    <None Remove="LangVPlayer.Core\**" />
+    <EmbeddedResource Remove="LangVPlayer.Core\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="LangVPlayer.Core\LangVPlayer.Core.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.9.5" />
@@ -19,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="video.ico" />
-    <Resource Include="video.png" />
+    <Resource Include="langvplayer.ico" />
+    <Resource Include="langvplayer.png" />
   </ItemGroup>
 
   <!-- FFmpeg for thumbnail generation / FFmpeg для генерации миниатюр -->
