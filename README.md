@@ -1,112 +1,123 @@
-# LangV Player
+# 🎬 LangV Player
 
-Нативный видеоплеер для изучения языков на Windows (C# / WPF / .NET 8).
+**Language Video Player** — a powerful video player for language learning on Windows.
 
-## 🎯 Возможности
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-blue?style=flat-square)](https://github.com/timursarsembai/LangV-Player/releases)
+[![.NET](https://img.shields.io/badge/.NET-8.0-purple?style=flat-square)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
-- **Интерактивные субтитры**: 2 пары субтитров с кликабельными словами
-- **Встроенные словари**: SQLite база данных с быстрым поиском
-- **Перевод через AI**: Интеграция с OpenAI для неизвестных слов
-- **Экспорт в Anki**: Автоматическое создание карточек для запоминания
-- **Темная тема**: Приятный минималистичный интерфейс
-- **Всегда поверх**: Режим "Pin" для обучения параллельно с другими задачами
+---
 
-## 🚀 Установка
+## ✨ Features
 
-### 1. Клонируйте репозиторий
+- 🎥 **Dual Subtitles** — display two subtitle tracks simultaneously
+- 👆 **Interactive Subtitles** — clickable words with instant lookup
+- 📚 **Built-in Dictionary** — SQLite database with fast search
+- 🤖 **AI Translation** — OpenAI integration for unknown words (planned)
+- 📝 **Anki Export** — automatic flashcard creation (planned)
+- 🌙 **Dark Theme** — elegant minimalist interface
+- 📌 **Always on Top** — pin mode for multitasking
 
-```bash
-git clone https://github.com/timursarsembai/langv.git
-cd langv
-```
+---
 
-### 2. Установите libmpv-2.dll
+## 📥 Installation
 
-**Вариант 1: Автоматическая установка через winget**
-```powershell
-winget install mpv.net
-```
-После установки найдите `libmpv-2.dll` (обычно в `C:\Program Files\mpv.net\`) и скопируйте в папку `LangVPlayer\bin\Debug\net8.0-windows\`
+### Option 1: Download Release (coming soon)
 
-**Вариант 2: Ручная загрузка**
-1. Скачайте MPV библиотеку: https://sourceforge.net/projects/mpv-player-windows/files/libmpv/
-2. Извлеките `libmpv-2.dll` из архива
-3. Поместите файл в одну из папок:
-   - `LangVPlayer\bin\Debug\net8.0-windows\` (для разработки)
-   - Системная папка в PATH (для глобального использования)
+Pre-built releases will be available on the [Releases](https://github.com/timursarsembai/LangV-Player/releases) page.
 
-**Вариант 3: Через Chocolatey**
-```powershell
-choco install mpv
-```
-
-### 3. Соберите проект
+### Option 2: Build from Source
 
 ```bash
+# Clone the repository
+git clone https://github.com/timursarsembai/LangV-Player.git
+cd LangV-Player
+
+# Build and run
 cd LangVPlayer
 dotnet restore
 dotnet build
-```
-
-### 4. Запустите
-
-```bash
 dotnet run
 ```
 
-Или откройте `langvplayer.sln` в Visual Studio 2022.
+Or open `langvplayer.sln` in Visual Studio 2022.
 
-## 🎮 Горячие клавиши
+---
 
-| Клавиша | Действие |
-|---------|----------|
-| `Space` | Пауза/Воспроизведение |
-| `←` / `→` | Перемотка -10с / +10с |
-| `↑` / `↓` | Громкость +5 / -5 |
-| `Enter` / `F11` | Полноэкранный режим |
-| `Esc` | Выход из полноэкранного режима |
+## ⌨️ Keyboard Shortcuts
 
-## 📁 Структура проекта
+| Key | Action |
+|-----|--------|
+| `Space` | Play / Pause |
+| `←` / `→` | Seek -10s / +10s |
+| `↑` / `↓` | Volume +5 / -5 |
+| `Enter` / `F11` | Fullscreen |
+| `Esc` | Exit fullscreen |
+| `M` | Mute |
+
+---
+
+## 🛠️ Technologies
+
+- **WPF** (.NET 8) — user interface
+- **LibVLCSharp** — video playback engine
+- **SQLite** — dictionary database
+- **Newtonsoft.Json** — settings serialization
+- **OpenAI API** — AI translation (planned)
+
+---
+
+## 📋 Roadmap
+
+- ✅ Main window + video playback + dark theme
+- ✅ Dual subtitle support
+- ⏳ Interactive clickable subtitles
+- ⏳ Dictionary popup with translations
+- ⏳ Anki flashcard export
+- ⏳ AI-powered translations
+
+---
+
+## 📁 Project Structure
 
 ```
-langvplayer/
-├── .github/
-│   └── copilot-instructions.md   # Инструкции для разработки
+LangV-Player/
 ├── LangVPlayer/
-│   ├── Helpers/                   # Вспомогательные классы (WinAPI)
-│   ├── Services/                  # Сервисы (настройки, словари)
-│   ├── App.xaml                   # Ресурсы приложения (темная тема)
-│   ├── MainWindow.xaml            # Главное окно
-│   └── LangVPlayer.csproj         # Проект
-├── DEV_LOG.md                     # Журнал разработки
-└── README.md                      # Этот файл
+│   ├── Helpers/          # Utility classes
+│   ├── Models/           # Data models
+│   ├── Services/         # Services (settings, subtitles)
+│   ├── LangVPlayer.Core/ # Core library
+│   ├── App.xaml          # Application resources
+│   ├── MainWindow.xaml   # Main window
+│   └── LangVPlayer.csproj
+├── DEV_LOG.md            # Development journal
+└── README.md
 ```
 
-## 🛠 Технологии
+---
 
-- **.NET 8** — современная платформа
-- **WPF** — интерфейс пользователя
-- **Mpv.NET** — видеодвижок
-- **SQLite** — база данных словарей
-- **Newtonsoft.Json** — сериализация настроек
-- **OpenAI API** — перевод неизвестных слов
+## 📋 System Requirements
 
-## 📋 Этапы разработки
+| Component | Minimum |
+|-----------|---------|
+| OS | Windows 10 (x64) |
+| RAM | 4 GB |
+| .NET | 8.0 Desktop Runtime |
 
-- ✅ **Шаг 0**: DEV_LOG.md, правила разработки
-- ✅ **Шаг 1**: Основное окно + MPV + темная тема + Pin
-- ⏳ **Шаг 2**: Горячие клавиши + автоскрытие панели управления
-- ⏳ **Шаг 3**: Интерактивные субтитры (.srt) + словари + Popup
-- ⏳ **Шаг 4**: Экспорт в Anki + настройки
+---
 
-## 🤝 Вклад
+## 🤝 Contributing
 
-Проект разрабатывается по инструкциям из [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+Found a bug or have an idea? Create an [Issue](https://github.com/timursarsembai/LangV-Player/issues)!
 
-## 📝 Лицензия
+---
 
-MIT License
+## 📄 License
 
-## 🐛 Известные проблемы
+MIT License — free to use!
 
-См. [`DEV_LOG.md`](DEV_LOG.md) для деталей решенных проблем.
+---
+
+<p align="center">
+  <b>Made with ❤️ for language learners</b>
+</p>
