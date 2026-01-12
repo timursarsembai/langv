@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -1831,6 +1831,165 @@ public partial class MainWindow : Window
         }
 
         SettingsService.Save(_settings);
+    }
+
+    #endregion
+
+    #region Drag and Drop / Перетаскивание файлов
+
+    /// <summary>
+    /// Supported video file extensions for drag-and-drop.
+    /// Поддерживаемые расширения видеофайлов для перетаскивания.
+    /// </summary>
+    private static readonly string[] SupportedVideoExtensions = 
+    { 
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", 
+        ".m4v", ".mpg", ".mpeg", ".3gp", ".ts", ".m2ts", ".vob"
+    };
+
+    /// <summary>
+    /// Checks if file is a supported video format.
+    /// Проверяет, является ли файл поддерживаемым видеоформатом.
+    /// </summary>
+    private static bool IsSupportedVideoFile(string filePath)
+    {
+        string ext = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+        return SupportedVideoExtensions.Contains(ext);
+    }
+
+    /// <summary>
+    /// Gets video files from drag data.
+    /// Получает видеофайлы из данных перетаскивания.
+    /// </summary>
+    private static string[] GetVideoFilesFromDragData(System.Windows.IDataObject data)
+    {
+        if (!data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            return Array.Empty<string>();
+
+        var files = data.GetData(System.Windows.DataFormats.FileDrop) as string[];
+        if (files == null)
+            return Array.Empty<string>();
+
+        return files.Where(f => System.IO.File.Exists(f) && IsSupportedVideoFile(f))
+                    .OrderBy(f => f) // Sort alphabetically for consistent order / Сортировка по алфавиту
+                    .ToArray();
+    }
+
+    /// <summary>
+    /// Handles drag over video area - show copy cursor for video files.
+    /// Обработка перетаскивания над областью видео - показать курсор копирования для видеофайлов.
+    /// </summary>
+    private void VideoArea_DragOver(object sender, System.Windows.DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        {
+            var files = GetVideoFilesFromDragData(e.Data);
+            e.Effects = files.Length > 0 ? System.Windows.DragDropEffects.Copy : System.Windows.DragDropEffects.None;
+        }
+        else
+        {
+            e.Effects = System.Windows.DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// Handles drop on video area - play first file and add all to playlist.
+    /// Обработка сброса на область видео - воспроизвести первый файл и добавить все в плейлист.
+    /// </summary>
+    private void VideoArea_Drop(object sender, System.Windows.DragEventArgs e)
+    {
+        var files = GetVideoFilesFromDragData(e.Data);
+        if (files.Length == 0)
+            return;
+
+        // Add all files to playlist / Добавить все файлы в плейлист
+        int firstNewIndex = -1;
+        foreach (var file in files)
+        {
+            // Check if file is already in playlist / Проверить, есть ли файл уже в плейлисте
+            var existingItem = _playlist.FirstOrDefault(p => p.FilePath == file);
+            if (existingItem == null)
+            {
+                var newItem = new PlaylistItem { FilePath = file };
+                _playlist.Add(newItem);
+                if (firstNewIndex < 0)
+                    firstNewIndex = _playlist.Count - 1;
+            }
+            else if (firstNewIndex < 0)
+            {
+                firstNewIndex = _playlist.IndexOf(existingItem);
+            }
+        }
+
+        // Play the first file / Воспроизвести первый файл
+        if (firstNewIndex >= 0)
+        {
+            PlayPlaylistItem(firstNewIndex);
+        }
+        else
+        {
+            // All files were already in playlist, play the first one / Все файлы уже были в плейлисте, воспроизвести первый
+            var firstFile = files[0];
+            var existingItem = _playlist.FirstOrDefault(p => p.FilePath == firstFile);
+            if (existingItem != null)
+            {
+                PlayPlaylistItem(_playlist.IndexOf(existingItem));
+            }
+        }
+
+        // Return focus to window / Вернуть фокус на окно
+        this.Focus();
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// Handles drag over playlist area - show copy cursor for video files.
+    /// Обработка перетаскивания над областью плейлиста - показать курсор копирования для видеофайлов.
+    /// </summary>
+    private void PlaylistListBox_DragOver(object sender, System.Windows.DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        {
+            var files = GetVideoFilesFromDragData(e.Data);
+            e.Effects = files.Length > 0 ? System.Windows.DragDropEffects.Copy : System.Windows.DragDropEffects.None;
+        }
+        else
+        {
+            e.Effects = System.Windows.DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// Handles drop on playlist area - add files to playlist without playing.
+    /// Обработка сброса на область плейлиста - добавить файлы в плейлист без воспроизведения.
+    /// </summary>
+    private void PlaylistListBox_Drop(object sender, System.Windows.DragEventArgs e)
+    {
+        var files = GetVideoFilesFromDragData(e.Data);
+        if (files.Length == 0)
+            return;
+
+        // Add all files to playlist (without playing) / Добавить все файлы в плейлист (без воспроизведения)
+        foreach (var file in files)
+        {
+            // Check if file is already in playlist / Проверить, есть ли файл уже в плейлисте
+            if (!_playlist.Any(p => p.FilePath == file))
+            {
+                _playlist.Add(new PlaylistItem { FilePath = file });
+            }
+        }
+
+        // Show playlist panel if hidden / Показать панель плейлиста если скрыта
+        if (PlaylistPanel.Visibility != Visibility.Visible)
+        {
+            PlaylistPanel.Visibility = Visibility.Visible;
+        }
+
+        // Return focus to window / Вернуть фокус на окно
+        this.Focus();
+        e.Handled = true;
     }
 
     #endregion

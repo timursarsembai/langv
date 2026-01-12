@@ -1,4 +1,4 @@
-﻿<Window x:Class="LangVPlayer.MainWindow"
+<Window x:Class="LangVPlayer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -367,7 +367,10 @@
         </Grid>
 
         <!-- Video Area / Область видео -->
-        <Grid Grid.Row="1" Background="Black" x:Name="VideoArea">
+        <Grid Grid.Row="1" Background="Black" x:Name="VideoArea"
+              AllowDrop="True"
+              Drop="VideoArea_Drop"
+              DragOver="VideoArea_DragOver">
             <!-- VLC VideoView for video playback / VLC VideoView для воспроизведения видео -->
             <!-- Mouse overlay must be INSIDE VideoView with semi-transparent background per LibVLCSharp docs -->
             <!-- Слой для событий мыши должен быть ВНУТРИ VideoView с полупрозрачным фоном по документации LibVLCSharp -->
@@ -378,13 +381,19 @@
                           Background="#01000000"
                           MouseLeftButtonDown="VideoOverlay_MouseLeftButtonDown"
                           MouseMove="VideoOverlay_MouseMove"
-                          MouseWheel="VideoOverlay_MouseWheel"/>
+                          MouseWheel="VideoOverlay_MouseWheel"
+                          AllowDrop="True"
+                          Drop="VideoArea_Drop"
+                          DragOver="VideoArea_DragOver"/>
                     
                     <!-- Placeholder when no video (on top of overlay) / Заглушка при отсутствии видео (поверх overlay) -->
                     <StackPanel x:Name="NoVideoPlaceholder" 
                                 VerticalAlignment="Center" 
                                 HorizontalAlignment="Center"
-                                Visibility="Visible">
+                                Visibility="Visible"
+                                AllowDrop="True"
+                                Drop="VideoArea_Drop"
+                                DragOver="VideoArea_DragOver">
                         <TextBlock Text="🎬" FontSize="64" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
                         <TextBlock x:Name="PlaceholderText"
                                    Text="Drop video file here or click to open" 
@@ -727,7 +736,10 @@
                      Foreground="{StaticResource TextBrush}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      SelectionMode="Single"
-                     MouseDoubleClick="PlaylistListBox_MouseDoubleClick">
+                     MouseDoubleClick="PlaylistListBox_MouseDoubleClick"
+                     AllowDrop="True"
+                     Drop="PlaylistListBox_Drop"
+                     DragOver="PlaylistListBox_DragOver">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="10,8"/>

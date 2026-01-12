@@ -1,4 +1,4 @@
-﻿<Application x:Class="LangVPlayer.App"
+<Application x:Class="LangVPlayer.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:LangVPlayer"
@@ -6,10 +6,10 @@
              Startup="Application_Startup">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Converters / РљРѕРЅРІРµСЂС‚РµСЂС‹ -->
+            <!-- Converters / Конвертеры -->
             <helpers:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             
-            <!-- Dark Theme Colors / Р¦РІРµС‚Р° С‚РµРјРЅРѕР№ С‚РµРјС‹ -->
+            <!-- Dark Theme Colors / Цвета тёмной темы -->
             <Color x:Key="PrimaryBackgroundColor">#1E1E1E</Color>
             <Color x:Key="SecondaryBackgroundColor">#2D2D30</Color>
             <Color x:Key="TitleBarColor">#323232</Color>
@@ -18,7 +18,7 @@
             <Color x:Key="TextSecondaryColor">#9E9E9E</Color>
             <Color x:Key="BorderColor">#3F3F46</Color>
 
-            <!-- Brushes / РљРёСЃС‚Рё -->
+            <!-- Brushes / Кисти -->
             <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}"/>
             <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}"/>
             <SolidColorBrush x:Key="TitleBarBrush" Color="{StaticResource TitleBarColor}"/>
@@ -27,7 +27,7 @@
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
             <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
 
-            <!-- TitleBar Button Style / РЎС‚РёР»СЊ РєРЅРѕРїРѕРє TitleBar -->
+            <!-- TitleBar Button Style / Стиль кнопок TitleBar -->
             <Style x:Key="TitleBarButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="46"/>
                 <Setter Property="Height" Value="30"/>
@@ -56,7 +56,7 @@
                 </Setter>
             </Style>
 
-            <!-- Close Button Style / РЎС‚РёР»СЊ РєРЅРѕРїРєРё Р·Р°РєСЂС‹С‚РёСЏ -->
+            <!-- Close Button Style / Стиль кнопки закрытия -->
             <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
                 <Setter Property="Template">
                     <Setter.Value>
@@ -77,7 +77,7 @@
                 </Setter>
             </Style>
 
-            <!-- Pin Button Style (Toggle) / РЎС‚РёР»СЊ РєРЅРѕРїРєРё Pin (РїРµСЂРµРєР»СЋС‡Р°С‚РµР»СЊ) -->
+            <!-- Pin Button Style (Toggle) / Стиль кнопки Pin (переключатель) -->
             <Style x:Key="PinButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Width" Value="46"/>
                 <Setter Property="Height" Value="30"/>
@@ -106,7 +106,7 @@
                 </Setter>
             </Style>
 
-            <!-- Control Button Style / РЎС‚РёР»СЊ РєРЅРѕРїРѕРє СѓРїСЂР°РІР»РµРЅРёСЏ -->
+            <!-- Control Button Style / Стиль кнопок управления -->
             <Style x:Key="ControlButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="50"/>
                 <Setter Property="Height" Value="50"/>
@@ -135,7 +135,7 @@
                 </Setter>
             </Style>
 
-            <!-- Video Slider Style / РЎС‚РёР»СЊ РїРѕР»Р·СѓРЅРєР° РІРёРґРµРѕ -->
+            <!-- Video Slider Style / Стиль ползунка видео -->
             <Style x:Key="VideoSliderStyle" TargetType="Slider">
                 <Setter Property="Height" Value="28"/>
                 <Setter Property="Background" Value="#3F3F3F"/>
@@ -179,14 +179,14 @@
                 </Setter>
             </Style>
 
-            <!-- Menu Dark Theme Style / РЎС‚РёР»СЊ РјРµРЅСЋ РІ С‚РµРјРЅРѕР№ С‚РµРјРµ -->
+            <!-- Menu Dark Theme Style / Стиль меню в тёмной теме -->
             <Style TargetType="Menu">
                 <Setter Property="Background" Value="{StaticResource TitleBarBrush}"/>
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
             </Style>
 
-            <!-- Context Menu Popup Style / РЎС‚РёР»СЊ РІСЃРїР»С‹РІР°СЋС‰РµРіРѕ РјРµРЅСЋ -->
+            <!-- Context Menu Popup Style / Стиль всплывающего меню -->
             <Style TargetType="ContextMenu">
                 <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}"/>
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -195,7 +195,7 @@
                 <Setter Property="Padding" Value="2"/>
             </Style>
 
-            <!-- MenuItem TopLevel Header Style / РЎС‚РёР»СЊ Р·Р°РіРѕР»РѕРІРєР° РјРµРЅСЋ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ -->
+            <!-- MenuItem TopLevel Header Style / Стиль заголовка меню верхнего уровня -->
             <Style x:Key="MenuItemTopLevelHeaderStyle" TargetType="MenuItem">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -222,7 +222,7 @@
                 </Setter>
             </Style>
 
-            <!-- MenuItem Style with Submenu / РЎС‚РёР»СЊ РїСѓРЅРєС‚Р° РјРµРЅСЋ СЃ РїРѕРґРјРµРЅСЋ -->
+            <!-- MenuItem Style with Submenu / Стиль пункта меню с подменю -->
             <Style TargetType="MenuItem">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -232,7 +232,7 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="MenuItem">
                             <Grid>
-                                <!-- Main MenuItem Area / РћСЃРЅРѕРІРЅР°СЏ РѕР±Р»Р°СЃС‚СЊ РїСѓРЅРєС‚Р° РјРµРЅСЋ -->
+                                <!-- Main MenuItem Area / Основная область пункта меню -->
                                 <Border x:Name="Border" 
                                         Background="{TemplateBinding Background}" 
                                         BorderThickness="0"
@@ -246,7 +246,7 @@
                                             <ColumnDefinition Width="16"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <!-- Icon Column / РљРѕР»РѕРЅРєР° РёРєРѕРЅРєРё -->
+                                        <!-- Icon Column / Колонка иконки -->
                                         <ContentPresenter x:Name="IconPresenter"
                                                           Grid.Column="0"
                                                           ContentSource="Icon"
@@ -255,7 +255,7 @@
                                                           VerticalAlignment="Center"
                                                           Margin="4,0,0,0"/>
                                         
-                                        <!-- Check Mark for IsCheckable / Р“Р°Р»РѕС‡РєР° РґР»СЏ С‡РµРєР±РѕРєСЃРѕРІ -->
+                                        <!-- Check Mark for IsCheckable / Галочка для чекбоксов -->
                                         <TextBlock x:Name="CheckMark" 
                                                    Grid.Column="0"
                                                    Text="&#xE73E;" 
@@ -266,13 +266,13 @@
                                                    VerticalAlignment="Center"
                                                    Visibility="Collapsed"/>
                                         
-                                        <!-- Header / Р—Р°РіРѕР»РѕРІРѕРє -->
+                                        <!-- Header / Заголовок -->
                                         <ContentPresenter Grid.Column="1" 
                                                           ContentSource="Header" 
                                                           Margin="8,6"
                                                           VerticalAlignment="Center"/>
                                         
-                                        <!-- Input Gesture Text / РЎРѕС‡РµС‚Р°РЅРёРµ РєР»Р°РІРёС€ -->
+                                        <!-- Input Gesture Text / Сочетание клавиш -->
                                         <TextBlock Grid.Column="2" 
                                                    Text="{TemplateBinding InputGestureText}" 
                                                    Foreground="{StaticResource TextSecondaryBrush}"
@@ -280,7 +280,7 @@
                                                    Margin="20,0,10,0"
                                                    VerticalAlignment="Center"/>
                                         
-                                        <!-- Submenu Arrow / РЎС‚СЂРµР»РєР° РїРѕРґРјРµРЅСЋ -->
+                                        <!-- Submenu Arrow / Стрелка подменю -->
                                         <Path x:Name="SubMenuArrow" 
                                               Grid.Column="3" 
                                               Data="M0,0 L4,4 L0,8" 
@@ -291,7 +291,7 @@
                                     </Grid>
                                 </Border>
                                 
-                                <!-- Submenu Popup / Р’СЃРїР»С‹РІР°СЋС‰РµРµ РїРѕРґРјРµРЅСЋ -->
+                                <!-- Submenu Popup / Всплывающее подменю -->
                                 <Popup x:Name="PART_Popup"
                                        IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
                                        Placement="Right"
@@ -317,15 +317,15 @@
                                 </Popup>
                             </Grid>
                             <ControlTemplate.Triggers>
-                                <!-- Highlight on hover / РџРѕРґСЃРІРµС‚РєР° РїСЂРё РЅР°РІРµРґРµРЅРёРё -->
+                                <!-- Highlight on hover / Подсветка при наведении -->
                                 <Trigger Property="IsHighlighted" Value="True">
                                     <Setter TargetName="Border" Property="Background" Value="#3C3C3C"/>
                                 </Trigger>
-                                <!-- Show arrow for items with submenu / РџРѕРєР°Р·Р°С‚СЊ СЃС‚СЂРµР»РєСѓ РґР»СЏ СЌР»РµРјРµРЅС‚РѕРІ СЃ РїРѕРґРјРµРЅСЋ -->
+                                <!-- Show arrow for items with submenu / Показать стрелку для элементов с подменю -->
                                 <Trigger Property="Role" Value="SubmenuHeader">
                                     <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Visible"/>
                                 </Trigger>
-                                <!-- Show checkmark for checked items / РџРѕРєР°Р·Р°С‚СЊ РіР°Р»РѕС‡РєСѓ РґР»СЏ РѕС‚РјРµС‡РµРЅРЅС‹С… СЌР»РµРјРµРЅС‚РѕРІ -->
+                                <!-- Show checkmark for checked items / Показать галочку для отмеченных элементов -->
                                 <MultiTrigger>
                                     <MultiTrigger.Conditions>
                                         <Condition Property="IsCheckable" Value="True"/>
@@ -334,7 +334,7 @@
                                     <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
                                     <Setter TargetName="IconPresenter" Property="Visibility" Value="Collapsed"/>
                                 </MultiTrigger>
-                                <!-- Top level header popup placement / Р Р°Р·РјРµС‰РµРЅРёРµ popup РґР»СЏ Р·Р°РіРѕР»РѕРІРєРѕРІ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ -->
+                                <!-- Top level header popup placement / Размещение popup для заголовков верхнего уровня -->
                                 <Trigger Property="Role" Value="TopLevelHeader">
                                     <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom"/>
                                 </Trigger>
